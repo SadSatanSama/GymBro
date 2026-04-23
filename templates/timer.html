@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block title %}Rest Timer - GymBro{% endblock %}
+{% block header %}Rest Timer{% endblock %}
+{% block nav_timer %}active{% endblock %}
+{% block nav_timer_m %}active{% endblock %}
+{% block subheader %}Optimize your recovery between sets.{% endblock %}
+
+{% block content %}
+<div class="timer-container glass" style="max-width: 500px; margin: 0 auto; padding: 2rem; border-radius: var(--radius); text-align: center;">
+    
+    <!-- Circular Display -->
+    <div class="timer-display" style="position: relative; width: 250px; height: 250px; margin: 0 auto 1.5rem auto; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 6px solid rgba(255, 51, 102, 0.2); box-shadow: 0 0 30px rgba(255, 51, 102, 0.1) inset;">
+        <h1 id="timeDisplay" style="font-size: 4.5rem; font-weight: 700; color: var(--accent-red); margin: 0; font-variant-numeric: tabular-nums; text-shadow: 0 0 10px rgba(255, 51, 102, 0.3);">01:30</h1>
+    </div>
+
+    <!-- Alarm Toggle -->
+    <div style="display: flex; justify-content: center; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem;">
+        <label class="glass" style="display: flex; align-items: center; gap: 0.5rem; padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 0.9rem;">
+            <input type="checkbox" id="muteToggle" style="width: 16px; height: 16px; accent-color: var(--accent-red);">
+            <span style="color: var(--text-muted);">Silent Mode</span>
+        </label>
+    </div>
+
+    <!-- Controls -->
+    <div style="display: flex; gap: 1rem; justify-content: center; margin-bottom: 2rem;">
+        <button id="btnStart" class="btn-primary" onclick="toggleTimer()" style="flex: 1; padding: 1rem; font-size: 1.2rem; border-radius: 12px; transition: 0.3s;">Start</button>
+        <button class="glass-btn" onclick="resetTimer()" style="padding: 1rem 1.5rem; border-radius: 12px; font-weight: 600; font-size: 1.1rem; cursor: pointer;">Reset</button>
+    </div>
+
+    <!-- Quick Presets -->
+    <div style="margin-bottom: 2rem;">
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 0.8rem; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600;">Quick Presets</p>
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem;">
+            <button class="glass-btn" onclick="setTime(30)" style="padding: 0.75rem 0; border-radius: 8px; cursor: pointer; font-weight: 600;">30s</button>
+            <button class="glass-btn" onclick="setTime(60)" style="padding: 0.75rem 0; border-radius: 8px; cursor: pointer; font-weight: 600;">60s</button>
+            <button class="glass-btn" onclick="setTime(90)" style="padding: 0.75rem 0; border-radius: 8px; cursor: pointer; font-weight: 600;">90s</button>
+            <button class="glass-btn" onclick="setTime(120)" style="padding: 0.75rem 0; border-radius: 8px; cursor: pointer; font-weight: 600;">2m</button>
+        </div>
+    </div>
+
+    <!-- Manual Input -->
+    <div style="border-top: 1px solid var(--glass-border); padding-top: 1.5rem;">
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 0.8rem; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600;">Custom Time</p>
+        <div style="display: flex; gap: 0.5rem; justify-content: center; align-items: center;">
+            <input type="number" id="inputMin" class="form-control" placeholder="Min" min="0" max="59" style="width: 80px; text-align: center; font-size: 1.1rem; padding: 0.5rem;">
+            <span style="font-size: 1.5rem; font-weight: bold; color: var(--text-muted);">:</span>
+            <input type="number" id="inputSec" class="form-control" placeholder="Sec" min="0" max="59" style="width: 80px; text-align: center; font-size: 1.1rem; padding: 0.5rem;">
+            <button class="btn-primary" onclick="setCustomTime()" style="padding: 0.5rem 1.2rem; border-radius: 8px; font-size: 0.9rem;">Set</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    let initialTime = 90; // default 1:30
+    let timeLeft = initialTime;
+    let timerInterval = null;
+    let isRunning = false;
+
+    const display = document.getElementById('timeDisplay');
+    const btnStart = document.getElementById('btnStart');
+    
+    function updateDisplay() {
+        const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+        const s = (timeLeft % 60).toString().padStart(2, '0');
+        display.innerText = `${m}:${s}`;
+    }
+
+    function setTime(seconds) {
+        if(isRunning) return;
+        initialTime = seconds;
+        timeLeft = seconds;
+        updateDisplay();
+    }
+
+    function setCustomTime() {
+        if(isRunning) return;
+        const m = parseInt(document.getElementById('inputMin').value) || 0;
+        const s = parseInt(document.getElementById('inputSec').value) || 0;
+        const total = (m * 60) + s;
+        if(total > 0) {
+            setTime(total);
+            document.getElementById('inputMin').value = '';
+            document.getElementById('inputSec').value = '';
+        }
+    }
+
+    // Audio Context for the alarm (Web Audio API - no external files needed)
+    let audioCtx = null;
+    function playAlarm() {
+        if (document.getElementById('muteToggle').checked) return;
+        
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // A5 note
+        oscillator.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.5);
+
+        gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 0.1);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + 0.5);
+
+        // Vibrate on mobile
+        if (navigator.vibrate) {
+            navigator.vibrate([200, 100, 200]);
+        }
+    }
+
+    function toggleTimer() {
+        if (isRunning) {
+            // Pause
+            clearInterval(timerInterval);
+            isRunning = false;
+            btnStart.innerText = "Resume";
+            btnStart.style.background = "var(--accent-orange)";
+        } else {
+            // Start
+            if(timeLeft <= 0) return;
+            
+            // Resume AudioContext if it was suspended (browser policy)
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            isRunning = true;
+            btnStart.innerText = "Pause";
+            btnStart.style.background = "#4ECDC4"; // Teal active state
+            display.style.color = "var(--text-main)";
+            display.style.textShadow = "none";
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateDisplay();
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    isRunning = false;
+                    btnStart.innerText = "Start";
+                    btnStart.style.background = "var(--accent-red)";
+                    
+                    // Trigger Alarm!
+                    playAlarm();
+
+                    // Visual Flash for 00:00
+                    display.style.color = "#4ECDC4";
+                    display.style.textShadow = "0 0 20px rgba(78, 205, 196, 0.6)";
+                    
+                    setTimeout(() => {
+                        display.style.color = "var(--accent-red)";
+                        display.style.textShadow = "0 0 10px rgba(255, 51, 102, 0.3)";
+                    }, 2000);
+                }
+            }, 1000);
+        }
+    }
+
+    function resetTimer() {
+        clearInterval(timerInterval);
+        isRunning = false;
+        timeLeft = initialTime;
+        btnStart.innerText = "Start";
+        btnStart.style.background = "var(--accent-red)";
+        display.style.color = "var(--accent-red)";
+        display.style.textShadow = "0 0 10px rgba(255, 51, 102, 0.3)";
+        updateDisplay();
+    }
+
+    // Init display
+    updateDisplay();
+</script>
+{% endblock %}

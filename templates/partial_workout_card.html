@@ -1,0 +1,65 @@
+<div class="workout-card glass" data-date="{{ workout.raw_date }}" style="margin-bottom: 0.75rem; padding: 1rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.5rem;">
+        <div>
+            <h3 style="margin: 0; font-size: 1.1rem;">{{ workout.display_date }}</h3>
+            <div style="display: flex; align-items: center; gap: 0.4rem; margin-top: 0.1rem;">
+                <span class="workout-category-tag" style="color: var(--accent-orange); font-size: 0.85rem; font-weight: 600;">{{ workout.category }}</span>
+                {% if workout.category == 'Uncategorized' %}
+                <button data-workout-id="{{ workout.id }}" onclick="editCategory(this)" style="background: none; border: none; cursor: pointer; opacity: 0.5; transition: opacity 0.2s; padding: 0; display: flex;" title="Add a category">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2">
+                        <path d="M12 20h9"></path>
+                        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                    </svg>
+                </button>
+                {% endif %}
+            </div>
+        </div>
+        <button class="delete-workout-btn" data-workout-id="{{ workout.id }}" onclick="deleteWorkout(this)" style="background: none; border: none; cursor: pointer; display: flex; align-items: center;" title="Delete this workout">
+            <svg viewBox="0 0 24 24" width="18" height="18" class="neon-trash" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" fill="none">
+                <path d="M10 4h4v2h-4z" />
+                <path d="M4 6h16v2H4z" />
+                <path d="M5 8h14v13H5z" />
+                <path d="M7.5 11h2v7h-2z" />
+                <path d="M11 11h2v7h-2z" />
+                <path d="M14.5 11h2v7h-2z" />
+            </svg>
+        </button>
+    </div>
+    
+    <div class="exercises-container">
+        {% for ex_name, stats in workout.exercises.items() %}
+        <div class="exercise-group">
+            <div class="exercise-summary-row" style="display: flex; justify-content: space-between; align-items: center; padding: 0.4rem 0; border-bottom: 1px solid var(--glass-border); gap: 1rem;">
+                <div style="display: flex; align-items: center; gap: 0.4rem; flex: 1; min-width: 0;">
+                    <button class="expand-btn" onclick="toggleSets(this)" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.7rem; padding: 2px; transition: transform 0.2s; flex-shrink: 0;">▶</button>
+                    <span style="font-weight: 600; color: var(--text-main); word-break: break-word; line-height: 1.2; font-size: 0.95rem;">{{ ex_name }}</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0;">
+                    <div style="display: flex; flex-direction: column; align-items: flex-end; line-height: 1.1;">
+                        <span class="stat-weight" style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600;">
+                            {{ stats.max_weight }} <span class="unit-weight">{% if workout.category == 'Cardio' or workout.category == 'HIIT' %}{% else %}kg{% endif %}</span>
+                        </span>
+                        <span class="stat-reps" style="color: var(--text-muted); display: none; font-size: 0.85rem; font-weight: 600;">
+                            {{ stats.max_reps }} <span class="unit-reps">{% if workout.category == 'Cardio' or workout.category == 'HIIT' %}min{% else %}reps{% endif %}</span>
+                        </span>
+                        <small style="color: var(--text-muted); opacity: 0.5; font-size: 0.7rem;">{% if workout.category == 'Cardio' %}Best{% else %}Max{% endif %}</small>
+                    </div>
+                    <button class="delete-exercise-btn" data-workout-id="{{ workout.id }}" data-exercise-name="{{ ex_name }}" onclick="deleteExercise(this)" style="background: rgba(255, 51, 102, 0.1); border: none; color: var(--accent-red); cursor: pointer; width: 20px; height: 20px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem;">✕</button>
+                </div>
+            </div>
+            <div class="exercise-sets-dropdown" style="display: none; padding: 0.3rem 0 0.3rem 1.2rem; background: var(--dropdown-bg); border-radius: 0 0 8px 8px; margin-bottom: 0.2rem;">
+                {% for s in stats.all_sets %}
+                <div style="display: flex; gap: 1rem; font-size: 0.85rem; color: var(--text-muted); padding: 1px 0;">
+                    <span style="width: 40px;">Set {{ loop.index }}</span>
+                    <span>{{ s.weight }}<span class="unit-weight-inline">{% if workout.category == 'Cardio' or workout.category == 'HIIT' %}{% else %} kg{% endif %}</span> {% if workout.category == 'Cardio' or workout.category == 'HIIT' %}for{% else %}×{% endif %} {{ s.reps }}<span class="unit-reps-inline">{% if workout.category == 'Cardio' or workout.category == 'HIIT' %} min{% else %}{% endif %}</span></span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    {% if workout.notes %}
+    <p style="margin-top: 0.5rem; padding-top: 0.3rem; font-size: 0.85rem; font-style: italic; color: var(--text-muted); border-top: 1px dashed var(--glass-border);">"{{ workout.notes }}"</p>
+    {% endif %}
+</div>

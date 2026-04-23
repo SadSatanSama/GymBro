@@ -1,0 +1,297 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - GymBro{% endblock %}
+{% block header %}Settings{% endblock %}
+{% block subheader %}Customize your tracking experience.{% endblock %}
+
+{% block content %}
+<div class="glass" style="max-width: 600px; margin: 0 auto; padding: 0.5rem; overflow: hidden;">
+    <!-- Unit Settings -->
+    <div class="settings-section">
+        <button class="accordion-header" onclick="toggleAccordion(this)">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/><path d="M4 6v12c0 1.1.9 2 2 2h14v-4"/><path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2 2h4v-4h-4Z"/></svg>
+                <span style="font-weight: 600; font-size: 1.1rem;">Unit Preferences</span>
+            </div>
+            <svg class="chevron" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="accordion-content">
+            <div style="padding: 1rem 1.5rem 2rem 1.5rem;">
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.9rem;">Weight Unit</label>
+                    <div class="toggle-group" style="display: flex; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 8px; overflow: hidden; width: fit-content;">
+                        <button id="unitKg" class="toggle-btn active" onclick="saveUnit('weight', 'kg')">Kilograms (kg)</button>
+                        <button id="unitLbs" class="toggle-btn" onclick="saveUnit('weight', 'lbs')">Pounds (lbs)</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.9rem;">Distance Unit</label>
+                    <div class="toggle-group" style="display: flex; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 8px; overflow: hidden; width: fit-content;">
+                        <button id="unitKm" class="toggle-btn active" onclick="saveUnit('distance', 'km')">Kilometers (km)</button>
+                        <button id="unitMiles" class="toggle-btn" onclick="saveUnit('distance', 'miles')">Miles (mi)</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Language Settings -->
+    <div class="settings-section">
+        <button class="accordion-header" onclick="toggleAccordion(this)">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4ECDC4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                <span style="font-weight: 600; font-size: 1.1rem;">Language / भाषा</span>
+            </div>
+            <svg class="chevron" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="accordion-content">
+            <div style="padding: 1rem 1.5rem 2rem 1.5rem;">
+                <div class="toggle-group" style="display: flex; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 8px; overflow: hidden; width: fit-content;">
+                    <button id="langEn" class="toggle-btn active" onclick="saveLanguage('en')">English</button>
+                    <button id="langHi" class="toggle-btn" onclick="saveLanguage('hi')">हिन्दी</button>
+                    <button id="langEs" class="toggle-btn" onclick="saveLanguage('es')">Español</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Management -->
+    <div class="settings-section">
+        <button class="accordion-header" onclick="toggleAccordion(this)">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                <span style="font-weight: 600; font-size: 1.1rem;">Data Management</span>
+            </div>
+            <svg class="chevron" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="accordion-content">
+            <div style="padding: 1rem 1.5rem 2rem 1.5rem;">
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <a href="/settings/export" class="glass-btn" style="text-decoration: none; display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; font-weight: 600;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        Export CSV
+                    </a>
+                    <label class="btn-primary" style="cursor: pointer; display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; border-radius: 8px;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        Import CSV
+                        <input type="file" id="importInput" accept=".csv" style="display: none;" onchange="importData(this)">
+                    </label>
+                </div>
+                <p id="importStatus" style="margin-top: 1rem; font-size: 0.85rem; color: var(--accent-orange); display: none;"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Coach Settings -->
+    <div class="settings-section">
+        <button class="accordion-header" onclick="toggleAccordion(this)">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+                <span style="font-weight: 600; font-size: 1.1rem;">AI Coach Config</span>
+            </div>
+            <svg class="chevron" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="accordion-content">
+            <div style="padding: 1rem 1.5rem 2rem 1.5rem;">
+                <div class="form-group">
+                    <label for="geminiKey" style="display: block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.9rem;">Gemini API Key</label>
+                    <input type="password" id="geminiKey" class="form-control" placeholder="Enter your Google AI API key" style="margin-bottom: 0.5rem;">
+                    <p style="font-size: 0.75rem; color: var(--text-muted);">Stored locally in your browser.</p>
+                    <button onclick="saveApiKey()" class="btn-primary" style="margin-top: 1rem; padding: 0.6rem 1.5rem; font-size: 0.9rem;">Save API Key</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact & Support -->
+    <div class="settings-section">
+        <button class="accordion-header" onclick="toggleAccordion(this)">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4ECDC4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="min-width: 22px;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+                <span style="font-weight: 600; font-size: 1.1rem;">Contact & Support</span>
+            </div>
+            <svg class="chevron" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="accordion-content">
+            <div style="padding: 1rem 1.5rem 2rem 1.5rem;">
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.25rem;">Found a bug or have a feature request? Get in touch!</p>
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    <a href="mailto:shinigaminokaicho@gmail.com" class="glass" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 10px; text-decoration: none; color: var(--text-main); transition: 0.3s;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+                        <span>Email Us</span>
+                    </a>
+                    <a href="https://github.com/arijitdas-dev/gymbro" target="_blank" class="glass" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 10px; text-decoration: none; color: var(--text-main); transition: 0.3s;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+                        <span>GitHub Repository</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Danger Zone -->
+    <div class="settings-section">
+        <button class="accordion-header" onclick="toggleAccordion(this)">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>
+                <span style="font-weight: 600; font-size: 1.1rem; color: #ff4444;">Danger Zone</span>
+            </div>
+            <svg class="chevron" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="accordion-content">
+            <div style="padding: 1rem 1.5rem 2rem 1.5rem;">
+                <button onclick="clearAllData()" class="glass-btn" style="border-color: #ff4444; color: #ff4444; padding: 0.6rem 1.2rem; font-size: 0.9rem; font-weight: 600; width: 100%;">Clear All Saved Settings</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .settings-section {
+        border-bottom: 1px solid var(--glass-border);
+    }
+    .settings-section:last-child {
+        border-bottom: none;
+    }
+    .accordion-header {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.25rem 1.5rem;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        color: var(--text-main);
+        transition: 0.3s;
+    }
+    .accordion-header:hover {
+        background: rgba(255, 255, 255, 0.03);
+    }
+    .accordion-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        background: rgba(0, 0, 0, 0.1);
+    }
+    .settings-section.active .accordion-content {
+        max-height: 400px;
+    }
+    .chevron {
+        transition: 0.3s;
+        opacity: 0.5;
+    }
+    .settings-section.active .chevron {
+        transform: rotate(180deg);
+        opacity: 1;
+        color: var(--accent-orange);
+    }
+</style>
+
+<script>
+    function toggleAccordion(header) {
+        const section = header.parentElement;
+        const isActive = section.classList.contains('active');
+        
+        // Close all other sections
+        document.querySelectorAll('.settings-section').forEach(s => s.classList.remove('active'));
+        
+        // Open this one if it wasn't active
+        if (!isActive) {
+            section.classList.add('active');
+        }
+    }
+
+    function saveUnit(type, value) {
+        localStorage.setItem(type + 'Unit', value);
+        updateUI();
+        
+        // Brief success feedback
+        const btn = document.getElementById('unit' + value.charAt(0).toUpperCase() + value.slice(1));
+        const originalText = btn.innerText;
+        btn.innerText = "Saved!";
+        setTimeout(() => { btn.innerText = originalText; }, 1000);
+    }
+
+    function saveLanguage(lang) {
+        localStorage.setItem('preferredLanguage', lang);
+        updateUI();
+        // Trigger a custom event so other parts of the app can react
+        window.dispatchEvent(new Event('languageChanged'));
+    }
+
+    async function importData(input) {
+        if (!input.files || input.files.length === 0) return;
+        
+        const file = input.files[0];
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        const statusEl = document.getElementById('importStatus');
+        statusEl.innerText = "Importing data... please wait.";
+        statusEl.style.display = "block";
+        
+        try {
+            const response = await fetch('/settings/import', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+            if (result.status === 'success') {
+                statusEl.innerText = "Success! " + result.message;
+                statusEl.style.color = "#4ECDC4";
+                setTimeout(() => { location.reload(); }, 2000);
+            } else {
+                statusEl.innerText = "Error: " + result.message;
+                statusEl.style.color = "#ff4444";
+            }
+        } catch (error) {
+            statusEl.innerText = "Failed to import. Check console for details.";
+            statusEl.style.color = "#ff4444";
+            console.error(error);
+        }
+    }
+
+    function updateUI() {
+        const weightUnit = localStorage.getItem('weightUnit') || 'kg';
+        const distanceUnit = localStorage.getItem('distanceUnit') || 'km';
+        const lang = localStorage.getItem('preferredLanguage') || 'en';
+
+        document.querySelectorAll('.toggle-group .toggle-btn').forEach(btn => btn.classList.remove('active'));
+        
+        const weightBtn = document.getElementById('unit' + weightUnit.charAt(0).toUpperCase() + weightUnit.slice(1));
+        if (weightBtn) weightBtn.classList.add('active');
+
+        const distanceBtn = document.getElementById('unit' + distanceUnit.charAt(0).toUpperCase() + distanceUnit.slice(1));
+        if (distanceBtn) distanceBtn.classList.add('active');
+
+        const langBtn = document.getElementById('lang' + lang.charAt(0).toUpperCase() + lang.slice(1));
+        if (langBtn) langBtn.classList.add('active');
+    }
+
+    function saveApiKey() {
+        const key = document.getElementById('geminiKey').value;
+        if (key) {
+            localStorage.setItem('gemini_api_key', key);
+            alert("API Key saved successfully!");
+            document.getElementById('geminiKey').value = '';
+        }
+    }
+
+    function clearAllData() {
+        if (confirm("This will clear your units and API key. Your workout history will remain safe in the database. Proceed?")) {
+            localStorage.clear();
+            location.reload();
+        }
+    }
+
+    // Init UI on load
+    window.addEventListener('DOMContentLoaded', () => {
+        updateUI();
+        // Mask API key if it exists
+        if (localStorage.getItem('gemini_api_key')) {
+            document.getElementById('geminiKey').placeholder = "••••••••••••••••";
+        }
+    });
+</script>
+{% endblock %}

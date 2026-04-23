@@ -1,0 +1,417 @@
+{% extends "base.html" %}
+
+{% block title %}Log Workout - GymBro{% endblock %}
+{% block header %}Log Workout{% endblock %}
+{% block nav_log %}active{% endblock %}
+{% block nav_log_m %}active{% endblock %}
+{% block subheader %}Record your sets for today.{% endblock %}
+
+{% block content %}
+<div class="glass" style="max-width: 600px; margin: 0 auto;">
+    <form action="/log" method="post" id="workoutForm">
+        <div class="form-group" style="display: flex; gap: 1rem;">
+            <div style="flex: 1;">
+                <label for="workout_date">Date</label>
+                <input type="date" id="workout_date" name="workout_date" class="form-control" required value="{{ today }}">
+            </div>
+            <div style="flex: 1;">
+                <label for="workout_category">Category</label>
+                <select id="workout_category" name="workout_category" class="form-control" onchange="updateFormFields()">
+                    <option value="" disabled selected>+ Category</option>
+                    <option value="Push Day">Push Day</option>
+                    <option value="Pull Day">Pull Day</option>
+                    <option value="Leg Day">Leg Day</option>
+                    <option value="Upper Body">Upper Body</option>
+                    <option value="Lower Body">Lower Body</option>
+                    <option value="Full Body">Full Body</option>
+                    <option value="Core & Abs">Core & Abs</option>
+                    <option value="Cardio">Cardio</option>
+                    <option value="HIIT">HIIT</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="exercise_name">Exercise</label>
+            <input type="text" id="exercise_name" name="exercise_name" class="form-control"
+                placeholder="Click to Browse Exercises" required readonly onclick="openModal()" style="cursor: pointer;">
+        </div>
+
+        <div class="set-section-header" style="display: flex; justify-content: space-between; align-items: center; margin-top: 2rem; margin-bottom: 1rem; border-top: 1px solid var(--glass-border); padding-top: 1.5rem;">
+            <h3 style="margin: 0; color: var(--text-main);">Set Details</h3>
+            <span id="setCounterBadge" style="background: var(--glass-bg); border: 1px solid var(--accent-orange); color: var(--accent-orange); padding: 4px 12px; border-radius: 12px; font-weight: 600; font-size: 0.9rem;">1st Set</span>
+        </div>
+
+        <div class="form-group">
+            <label for="weight">Weight (kg)</label>
+            <input type="number" id="weight" name="weight" class="form-control" step="0.5" placeholder="e.g. 60"
+                required>
+        </div>
+
+        <div class="form-group">
+            <label for="reps">Reps</label>
+            <input type="number" id="reps" name="reps" class="form-control" placeholder="e.g. 8" required>
+        </div>
+
+        <div class="form-group">
+            <label for="notes">Notes (Optional)</label>
+            <textarea id="notes" name="notes" class="form-control" rows="3" placeholder="How did it feel?"></textarea>
+        </div>
+
+        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+            <button type="button" class="btn-primary" style="flex: 1.5; background: linear-gradient(135deg, #00b09b, #96c93d); border: none; color: white; transition: all 0.3s ease; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;" onmouseover="this.style.transform='translateY(-2px)';" onmouseout="this.style.transform='translateY(0)';" onclick="finishWorkout()">Finish</button>
+            <button type="submit" class="btn-primary" style="flex: 2;" id="addSetBtn">+ Add Set</button>
+            <button type="button" class="glass-btn" style="flex: 1.5; border: 1px solid #FF3366; color: #FF3366; border-radius: 12px; cursor: pointer; font-weight: 600; transition: all 0.2s;" onclick="clearSet()">Clear</button>
+        </div>
+        
+        <div id="toastMessage" style="display: none; text-align: center; color: var(--accent-orange); margin-top: 1rem; font-weight: 600;"></div>
+    </form>
+</div>
+
+<!-- Exercise Selection Modal -->
+<div id="exerciseModal" class="modal-overlay">
+    <div class="modal-content glass">
+        <div class="modal-header">
+            <h2>Select Exercise</h2>
+            <button type="button" class="close-btn" onclick="closeModal()">✕</button>
+        </div>
+        <div style="padding: 1rem 2rem 0 2rem;">
+            <input type="text" id="exerciseSearch" class="form-control" placeholder="Search any exercise..." autocomplete="off">
+        </div>
+        <div class="category-tabs" id="categoryTabs">
+            <!-- Tabs will be populated here -->
+        </div>
+        <div class="exercise-grid" id="exerciseGrid">
+            <!-- Exercises will be populated here -->
+        </div>
+    </div>
+</div>
+
+<script>
+    let exercisesByCategory = {};
+
+    async function fetchExercises() {
+        try {
+            const response = await fetch("https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json");
+            const data = await response.json();
+            
+            // Group by equipment
+            data.forEach(item => {
+                let category = item.equipment;
+                if (!category) return;
+                
+                // Capitalize category
+                category = category.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+                
+                // Capitalize exercise name
+                let exName = item.name.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+
+                if (!exercisesByCategory[category]) {
+                    exercisesByCategory[category] = [];
+                }
+                
+                // Avoid duplicates in the same category by name
+                if (!exercisesByCategory[category].includes(exName)) {
+                    exercisesByCategory[category].push(exName);
+                }
+            });
+            
+            // Sort categories alphabetically and build tabs
+            renderCategoryTabs();
+            
+        } catch (error) {
+            console.error("Failed to load exercises:", error);
+        }
+    }
+
+    function renderCategoryTabs() {
+        const tabsContainer = document.getElementById("categoryTabs");
+        tabsContainer.innerHTML = "";
+        
+        const categories = Object.keys(exercisesByCategory).sort();
+        
+        categories.forEach((cat, index) => {
+            const btn = document.createElement("button");
+            btn.className = "tab-btn" + (index === 0 ? " active" : "");
+            btn.innerText = cat;
+            btn.type = "button";
+            btn.onclick = () => {
+                document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+                btn.classList.add("active");
+                renderExercises(cat);
+            };
+            tabsContainer.appendChild(btn);
+        });
+        
+        // Render the first category by default
+        if (categories.length > 0) {
+            renderExercises(categories[0]);
+        }
+    }
+
+    function renderExercises(category) {
+        const grid = document.getElementById("exerciseGrid");
+        grid.innerHTML = "";
+        
+        const exercises = exercisesByCategory[category].sort();
+        
+        exercises.forEach(exName => {
+            createExerciseButton(exName, grid);
+        });
+    }
+
+    function createExerciseButton(exName, grid) {
+        const btn = document.createElement("button");
+        btn.className = "exercise-btn";
+        btn.type = "button";
+        btn.innerText = exName;
+        btn.onclick = () => {
+            document.getElementById("exercise_name").value = exName;
+            currentSet = 1;
+            updateSetBadge();
+            
+            // Save state
+            sessionStorage.setItem("currentExercise", exName);
+            sessionStorage.setItem("currentSet", 1);
+            
+            closeModal();
+        };
+        grid.appendChild(btn);
+    }
+
+    function openModal() {
+        document.getElementById("exerciseModal").classList.add("show");
+        document.body.style.overflow = "hidden"; // Prevent background scrolling
+    }
+
+    function closeModal() {
+        document.getElementById("exerciseModal").classList.remove("show");
+        document.body.style.overflow = "auto";
+        document.getElementById("exerciseSearch").value = "";
+        document.getElementById("categoryTabs").style.display = "flex";
+        // Reset to active tab
+        const activeTab = document.querySelector(".tab-btn.active");
+        if(activeTab) {
+            renderExercises(activeTab.innerText);
+        }
+    }
+
+    // Search functionality
+    document.getElementById("exerciseSearch").addEventListener("input", function(e) {
+        const val = e.target.value.toLowerCase();
+        const tabsContainer = document.getElementById("categoryTabs");
+        const grid = document.getElementById("exerciseGrid");
+        
+        if (!val) {
+            tabsContainer.style.display = "flex";
+            const activeTab = document.querySelector(".tab-btn.active");
+            if(activeTab) renderExercises(activeTab.innerText);
+            return;
+        }
+
+        tabsContainer.style.display = "none";
+        grid.innerHTML = "";
+        
+        let matchCount = 0;
+        // Search across all categories
+        for (const category in exercisesByCategory) {
+            const matches = exercisesByCategory[category].filter(ex => ex.toLowerCase().includes(val));
+            matches.forEach(exName => {
+                if (matchCount < 50) { // Limit results to prevent lag
+                    createExerciseButton(exName, grid);
+                    matchCount++;
+                }
+            });
+        }
+        
+        if (matchCount === 0) {
+            grid.innerHTML = "<p style='color: var(--text-muted); grid-column: 1/-1; text-align: center;'>No exercises found.</p>";
+        }
+    });
+
+    // Start fetching as soon as the page loads
+    window.addEventListener("load", fetchExercises);
+
+    // Dynamic Set Tracking & AJAX Submission
+    let currentSet = 1;
+    
+    function updateSetBadge() {
+        let suffix = "th";
+        if (currentSet % 10 === 1 && currentSet % 100 !== 11) suffix = "st";
+        else if (currentSet % 10 === 2 && currentSet % 100 !== 12) suffix = "nd";
+        else if (currentSet % 10 === 3 && currentSet % 100 !== 13) suffix = "rd";
+        
+        document.getElementById("setCounterBadge").innerText = `${currentSet}${suffix} Set`;
+    }
+
+    // Restore state if returning from history
+    const savedExercise = sessionStorage.getItem("currentExercise");
+    const savedSet = sessionStorage.getItem("currentSet");
+    const savedCategory = sessionStorage.getItem("currentCategory");
+
+    function updateFormFields() {
+        const category = document.getElementById("workout_category").value;
+        const weightLabel = document.querySelector('label[for="weight"]');
+        const repsLabel = document.querySelector('label[for="reps"]');
+        const weightInput = document.getElementById("weight");
+        const repsInput = document.getElementById("reps");
+
+        if (category === "Cardio") {
+            weightLabel.innerText = "Distance (km) / Intensity";
+            weightInput.placeholder = "e.g. 5.0 or Level 10";
+            repsLabel.innerText = "Duration (min)";
+            repsInput.placeholder = "e.g. 30";
+        } else {
+            weightLabel.innerText = "Weight (kg)";
+            weightInput.placeholder = "e.g. 60";
+            repsLabel.innerText = "Reps";
+            repsInput.placeholder = "e.g. 8";
+        }
+    }
+
+    if (savedExercise) {
+        document.getElementById("exercise_name").value = savedExercise;
+    }
+    
+    if (savedSet) {
+        currentSet = parseInt(savedSet);
+        updateSetBadge();
+    }
+    
+    if (savedCategory) {
+        document.getElementById("workout_category").value = savedCategory;
+        updateFormFields();
+    }
+
+    // Save category when it changes
+    document.getElementById("workout_category").addEventListener("change", function(e) {
+        sessionStorage.setItem("currentCategory", e.target.value);
+        updateFormFields();
+    });
+
+    document.getElementById("workoutForm").addEventListener("submit", async function(e) {
+        e.preventDefault(); // Stop standard form submission
+        
+        const formData = new FormData(this);
+        
+        if (!formData.get("exercise_name")) {
+            alert("Please select an exercise before adding a set!");
+            return;
+        }
+        
+        const submitBtn = document.getElementById("addSetBtn");
+        
+        submitBtn.innerText = "Saving...";
+        submitBtn.disabled = true;
+
+        try {
+            const response = await fetch("/log", {
+                method: "POST",
+                body: formData
+            });
+
+            if (response.ok) {
+                // Success: Increment set
+                currentSet++;
+                updateSetBadge();
+                
+                // Save new state
+                sessionStorage.setItem("currentSet", currentSet);
+                
+                // Clear weight and reps, leave notes and exercise intact
+                document.getElementById("weight").value = "";
+                document.getElementById("reps").value = "";
+                
+                // Show success toast
+                const toast = document.getElementById("toastMessage");
+                toast.innerText = `Set ${currentSet - 1} logged successfully!`;
+                toast.style.display = "block";
+                setTimeout(() => { toast.style.display = "none"; }, 3000);
+            } else {
+                const errorText = await response.text();
+                console.error("Server Error:", errorText);
+                alert("Server returned an error: " + errorText);
+            }
+        } catch (error) {
+            console.error("Error saving set:", error);
+            alert("There was an error saving the set. Please try again.");
+        } finally {
+            submitBtn.innerText = "+ Add Set";
+            submitBtn.disabled = false;
+        }
+    });
+
+    async function finishWorkout() {
+        const form = document.getElementById("workoutForm");
+        const exerciseInput = document.getElementById("exercise_name").value;
+        const weightInput = document.getElementById("weight").value;
+        const repsInput = document.getElementById("reps").value;
+
+        // If user typed some data but didn't click "Add Set", save it automatically
+        if (exerciseInput && (weightInput || repsInput)) {
+            if (!form.checkValidity()) {
+                form.reportValidity(); // Show native browser validation error
+                return; // Prevent redirect so user can fix it
+            }
+            
+            const formData = new FormData(form);
+            try {
+                await fetch("/log", {
+                    method: "POST",
+                    body: formData
+                });
+            } catch (error) {
+                console.error("Error auto-saving final set:", error);
+            }
+        }
+
+        sessionStorage.removeItem("currentExercise");
+        sessionStorage.removeItem("currentSet");
+        window.location.href = '/history';
+    }
+
+    function clearSet() {
+        currentSet = 1;
+        updateSetBadge();
+        
+        sessionStorage.removeItem("currentExercise");
+        sessionStorage.removeItem("currentSet");
+        sessionStorage.removeItem("currentCategory");
+        
+        document.getElementById("exercise_name").value = "";
+        document.getElementById("weight").value = "";
+        document.getElementById("reps").value = "";
+        document.getElementById("notes").value = "";
+        document.getElementById("workout_category").value = "";
+    }
+
+    function updateUnits() {
+        const weightUnit = localStorage.getItem('weightUnit') || 'kg';
+        const distanceUnit = localStorage.getItem('distanceUnit') || 'km';
+        const category = document.getElementById("workout_category").value;
+        
+        const weightLabel = document.querySelector('label[for="weight"]');
+        const repsLabel = document.querySelector('label[for="reps"]');
+        
+        if (category === "Cardio" || category === "HIIT") {
+            weightLabel.innerText = `Distance (${distanceUnit === 'km' ? 'km' : 'mi'})`;
+            repsLabel.innerText = `Duration (${distanceUnit === 'km' ? 'min' : 'min'})`; // Duration is always min
+        } else {
+            weightLabel.innerText = `Weight (${weightUnit})`;
+            repsLabel.innerText = "Reps";
+        }
+    }
+
+    // Update units when category changes
+    const originalUpdateFormFields = updateFormFields;
+    updateFormFields = function() {
+        originalUpdateFormFields();
+        updateUnits();
+    };
+
+    // Init UI on load
+    window.addEventListener('DOMContentLoaded', () => {
+        updateUnits();
+    });
+</script>
+{% endblock %}

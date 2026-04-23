@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+
+{% block title %}History - GymBro{% endblock %}
+{% block header %}Workout History{% endblock %}
+{% block nav_history %}active{% endblock %}
+{% block nav_history_m %}active{% endblock %}
+{% block subheader %}Review your past sessions.{% endblock %}
+
+{% block content %}
+<div class="history-controls" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <input type="date" id="dateFilter" class="form-control" style="max-width: 160px; height: 38px;">
+        <button id="clearDateBtn" onclick="clearDateFilter()" class="glass-btn" style="display: none; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; font-weight: 600; height: 38px;">Clear</button>
+    </div>
+    
+    <div class="toggle-group" style="display: flex; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 8px; overflow: hidden;">
+        <button id="btnWeight" class="toggle-btn active" onclick="setMode('weight')">Weight</button>
+        <button id="btnReps" class="toggle-btn" onclick="setMode('reps')">Reps</button>
+        <button id="btnCardio" class="toggle-btn" onclick="setMode('cardio')">Cardio</button>
+    </div>
+</div>
+
+<div class="history-list" id="historyList">
+    {% if history_data %}
+        {% for workout in history_data %}
+            {% include 'partial_workout_card.html' %}
+        {% endfor %}
+        <div id="noHistoryMsg" class="glass" style="display: none; text-align: center; padding: 3rem;">
+            <h3 id="noHistoryTitle" style="margin-bottom: 1rem;">No History Available</h3>
+            <p id="noHistoryText" style="color: var(--text-muted); margin-bottom: 2rem;">Log your first session to see it here.</p>
+            <a href="/log" class="btn-primary" style="text-decoration: none;">Log Workout</a>
+        </div>
+    {% else %}
+        <div class="glass" style="text-align: center; padding: 3rem;">
+            <h3 style="margin-bottom: 1rem;">No tracking data yet!</h3>
+            <p style="color: var(--text-muted); margin-bottom: 2rem;">Log your first workout to see your history.</p>
+            <a href="/log" class="btn-primary" style="text-decoration: none;">Log Workout</a>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+    function setMode(mode, save = true) {
+        document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+        const btnId = mode === 'weight' ? 'btnWeight' : (mode === 'reps' ? 'btnReps' : 'btnCardio');
+        const btn = document.getElementById(btnId);
+        if (btn) btn.classList.add('active');
+
+        // Toggle visibility of weight/reps stats inside cards
+        document.querySelectorAll('.stat-weight').forEach(el => {
+            el.style.display = (mode === 'weight' || mode === 'cardio') ? 'block' : 'none';
+        });
+        document.querySelectorAll('.stat-reps').forEach(el => {
+            el.style.display = (mode === 'reps') ? 'block' : 'none';
+        });
+        
+        if (save) sessionStorage.setItem('historyMode', mode);
+        filterHistory();
+    }
+
+    function filterHistory() {
+        const activeBtn = document.querySelector('.toggle-btn.active');
+        if (!activeBtn) return;
+        
+        const mode = activeBtn.id.replace('btn', '').toLowerCase();
+        const selectedDate = document.getElementById('dateFilter').value;
+        const cards = document.querySelectorAll('.workout-card');
+        const noHistoryMsg = document.getElementById('noHistoryMsg');
+        
+        let matchCount = 0;
+        
+        cards.forEach(card => {
+            const categoryTag = card.querySelector('.workout-category-tag');
+            const catText = categoryTag ? categoryTag.innerText.trim() : '';
+            const isCardio = catText === 'Cardio' || catText === 'HIIT';
+            const dateMatches = !selectedDate || card.dataset.date === selectedDate;
+            
+            let typeMatches = false;
+            if (mode === 'cardio') {
+                typeMatches = isCardio;
+            } else {
+                typeMatches = !isCardio;
+            }
+
+            if (dateMatches && typeMatches) {
+                card.style.display = 'block';
+                matchCount++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        // Handle empty state message
+        if (matchCount === 0) {
+            noHistoryMsg.style.display = 'block';
+            if (mode === 'cardio') {
+                document.getElementById('noHistoryTitle').innerText = "No Cardio History Available";
+                document.getElementById('noHistoryText').innerText = "Log a cardio session to see it here.";
+            } else {
+                document.getElementById('noHistoryTitle').innerText = "No Strength History Available";
+                document.getElementById('noHistoryText').innerText = "Log a workout to see your history.";
+            }
+        } else {
+            noHistoryMsg.style.display = 'none';
+        }
+
+        document.getElementById('clearDateBtn').style.display = selectedDate ? 'block' : 'none';
+        sessionStorage.setItem("historyFilterDate", selectedDate);
+    }
+
+
+    document.getElementById('dateFilter').addEventListener('change', filterHistory);
+
+    function applyUnits() {
+        const weightUnit = localStorage.getItem('weightUnit') || 'kg';
+        const distanceUnit = localStorage.getItem('distanceUnit') || 'km';
+        
+        document.querySelectorAll('.workout-card').forEach(card => {
+            const catTag = card.querySelector('.workout-category-tag');
+            const isCardio = catTag && (catTag.innerText.trim() === 'Cardio' || catTag.innerText.trim() === 'HIIT');
+            
+            // Update weight/distance units
+            card.querySelectorAll('.unit-weight').forEach(el => {
+                el.innerText = isCardio ? (distanceUnit === 'km' ? 'km' : 'mi') : weightUnit;
+            });
+            card.querySelectorAll('.unit-weight-inline').forEach(el => {
+                el.innerText = isCardio ? (distanceUnit === 'km' ? ' km' : ' mi') : (' ' + weightUnit);
+            });
+            
+            // Update reps/duration units
+            card.querySelectorAll('.unit-reps').forEach(el => {
+                el.innerText = isCardio ? 'min' : 'reps';
+            });
+            card.querySelectorAll('.unit-reps-inline').forEach(el => {
+                el.innerText = isCardio ? ' min' : '';
+            });
+        });
+    }
+
+    // Initial load
+    window.addEventListener('DOMContentLoaded', () => {
+        const savedMode = sessionStorage.getItem('historyMode') || 'weight';
+        const savedDate = sessionStorage.getItem('historyFilterDate');
+        
+        if (savedDate) {
+            document.getElementById('dateFilter').value = savedDate;
+        }
+        
+        setMode(savedMode, false);
+        applyUnits();
+    });
+
+    function clearDateFilter() {
+        document.getElementById('dateFilter').value = '';
+        sessionStorage.removeItem("historyFilterDate");
+        filterHistory();
+    }
+
+    function toggleSets(btn) {
+        const setsDiv = btn.closest('.exercise-group').querySelector('.exercise-sets-dropdown');
+        if (setsDiv.style.display === 'none') {
+            setsDiv.style.display = 'block';
+            btn.style.transform = 'rotate(90deg)';
+        } else {
+            setsDiv.style.display = 'none';
+            btn.style.transform = 'rotate(0deg)';
+        }
+    }
+
+    async function deleteWorkout(btn) {
+        const id = btn.getAttribute('data-workout-id');
+        if (!confirm("Are you sure you want to permanently delete this entire workout and all its sets?")) return;
+        
+        try {
+            const response = await fetch(`/workout/${id}`, { method: 'DELETE' });
+            if (response.ok) {
+                const card = btn.closest('.workout-card');
+                card.remove();
+                
+                if (document.querySelectorAll('.workout-card').length === 0) {
+                    window.location.reload();
+                }
+            } else {
+                alert("Failed to delete workout from the server.");
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            alert("An error occurred while deleting.");
+        }
+    }
+
+    async function deleteExercise(btn) {
+        const workoutId = btn.getAttribute('data-workout-id');
+        const exerciseName = btn.getAttribute('data-exercise-name');
+
+        if (!confirm(`Are you sure you want to completely remove ${exerciseName} from this workout?`)) return;
+        
+        try {
+            const response = await fetch(`/workout/${workoutId}/exercise/${encodeURIComponent(exerciseName)}`, { method: 'DELETE' });
+            if (response.ok) {
+                const group = btn.closest('.exercise-group');
+                const card = group.closest('.workout-card');
+                group.remove();
+                
+                // If there are no more exercises in this workout, maybe remove the card
+                if (card.querySelectorAll('.exercise-group').length === 0) {
+                    card.remove();
+                }
+            } else {
+                alert("Failed to delete exercise from the server.");
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            alert("An error occurred while deleting the exercise.");
+        }
+    }
+
+    async function editCategory(btn) {
+        const workoutId = btn.getAttribute('data-workout-id');
+        const categories = "Push Day, Pull Day, Leg Day, Upper Body, Lower Body, Full Body, Core & Abs, Cardio, HIIT";
+        const newCategory = prompt("Enter a category for this workout:\n(e.g., " + categories + ")");
+        
+        if (!newCategory || newCategory.trim() === "") return;
+        
+        try {
+            const formData = new FormData();
+            formData.append("category", newCategory.trim());
+            
+            const response = await fetch(`/workout/${workoutId}/category`, {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (response.ok) {
+                const label = btn.previousElementSibling;
+                label.innerText = newCategory.trim();
+                btn.remove(); // Remove pencil once categorized
+            } else {
+                alert("Failed to update category.");
+            }
+        } catch (error) {
+            console.error("Error updating category:", error);
+            alert("An error occurred.");
+        }
+    }
+</script>
+<style>
+    /* Desktop: Hidden by default, shows on hover */
+    @media (min-width: 769px) {
+        .delete-exercise-btn {
+            opacity: 0;
+        }
+        .exercise-summary-row:hover .delete-exercise-btn {
+            opacity: 0.8;
+        }
+    }
+    
+    /* Mobile: Permanently visible */
+    @media (max-width: 768px) {
+        .delete-exercise-btn {
+            opacity: 0.6;
+        }
+    }
+
+    .delete-exercise-btn:hover {
+        opacity: 1 !important;
+        transform: scale(1.2);
+    }
+</style>
+{% endblock %}
