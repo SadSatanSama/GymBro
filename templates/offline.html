@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline - GymBro</title>
+    <link rel="stylesheet" href="/static/index.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            text-align: center;
+            padding: 2rem;
+            background: #0a0a0c;
+            color: white;
+        }
+        .offline-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            color: var(--accent-orange);
+        }
+    </style>
+</head>
+<body>
+    <div class="offline-icon">📡❌</div>
+    <h1 class="neon-text">You're Offline</h1>
+    <p style="color: var(--text-muted); margin: 1rem 0 2rem;">No internet connection detected. Don't worry, you can still log your workout and view your cached history!</p>
+    
+    <div style="display: flex; gap: 1rem;">
+        <a href="/log" class="btn-primary" style="text-decoration: none;">Log Workout</a>
+        <a href="/history" class="glass-btn" style="text-decoration: none; padding: 0.8rem 1.5rem; border-radius: 12px;">View History</a>
+    </div>
+
+    <p style="margin-top: 3rem; font-size: 0.8rem; opacity: 0.5;">GymBro will sync your data automatically when you're back online.</p>
+</body>
+</html>

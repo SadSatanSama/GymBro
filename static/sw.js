@@ -1,10 +1,12 @@
-const CACHE_NAME = 'gymbro-v3';
+const CACHE_NAME = 'gymbro-v5';
 const ASSETS = [
   '/',
   '/log',
   '/history',
   '/ask',
   '/settings',
+  '/timer',
+  '/offline',
   '/static/index.css',
   '/static/logo.png',
   '/static/manifest.json',
@@ -12,18 +14,17 @@ const ASSETS = [
   'https://cdn.jsdelivr.net/npm/chart.js'
 ];
 
-// Install Event
+// Install: Cache everything immediately
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
-      console.log('Caching all assets for elite offline experience');
       return cache.addAll(ASSETS);
     })
   );
   self.skipWaiting();
 });
 
-// Activate Event
+// Activate: Cleanup old caches
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys => {
@@ -33,32 +34,42 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
-// Fetch Event (Network First, fallback to Cache)
+// Fetch: "Stale-While-Revalidate" Strategy
+// 1. Show cached content immediately for speed
+// 2. Fetch from network in background to update cache
+// 3. If network fails and no cache, show /offline page
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
+
   event.respondWith(
-    fetch(event.request).catch(() => caches.match(event.request))
+    caches.open(CACHE_NAME).then(cache => {
+      return cache.match(event.request).then(cachedResponse => {
+        const fetchedResponse = fetch(event.request).then(networkResponse => {
+          cache.put(event.request, networkResponse.clone());
+          return networkResponse;
+        }).catch(() => {
+            // If network fails and we have no cache, return the offline page
+            if (!cachedResponse && event.request.mode === 'navigate') {
+                return cache.match('/offline');
+            }
+        });
+
+        return cachedResponse || fetchedResponse;
+      });
+    })
   );
 });
 
-// Background Sync Hook
+// Background Sync
 self.addEventListener('sync', event => {
   if (event.tag === 'sync-workouts') {
-    console.log('OS-level Background Sync triggered');
-    // Our app handles this via syncQueue in the UI, but we keep the hook for Store compatibility
+    console.log('Syncing data in background...');
   }
 });
 
-// Periodic Sync Hook
-self.addEventListener('periodicsync', event => {
-  if (event.tag === 'update-cache') {
-    console.log('Periodic Background Sync: Updating assets...');
-  }
-});
-
-// Push Notification Hook
+// Push
 self.addEventListener('push', event => {
-  const data = event.data ? event.data.text() : 'Time for your workout!';
+  const data = event.data ? event.data.text() : 'GymBro: Update!';
   event.waitUntil(
     self.registration.showNotification('GymBro', {
       body: data,
