@@ -28,6 +28,11 @@ app = FastAPI(title="Gym Progress Tracker")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
+@app.get("/sw.js")
+async def get_sw():
+    from fastapi.responses import FileResponse
+    return FileResponse("static/sw.js")
+
 def get_db():
     db = SessionLocal()
     try:
@@ -274,6 +279,13 @@ async def timer_page(request: Request):
     return templates.TemplateResponse(
         request=request,
         name="timer.html"
+    )
+
+@app.get("/offline", response_class=HTMLResponse)
+async def offline_page(request: Request):
+    return templates.TemplateResponse(
+        request=request,
+        name="offline.html"
     )
 
 @app.get("/settings", response_class=HTMLResponse)
