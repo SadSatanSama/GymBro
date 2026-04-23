@@ -21,6 +21,23 @@
   "launch_handler": {
     "client_mode": "focus-existing"
   },
+  "file_handlers": [
+    {
+      "action": "/import",
+      "accept": {
+        "text/csv": [".csv"],
+        "application/json": [".json"]
+      },
+      "icons": [
+        {
+          "src": "/static/logo.png",
+          "sizes": "512x512",
+          "type": "image/png"
+        }
+      ],
+      "launch_type": "single-client"
+    }
+  ],
   "shortcuts": [
     {
       "name": "Log Workout",
