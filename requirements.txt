@@ -6,3 +6,4 @@ python-multipart
 google-generativeai
 pydantic
 python-dotenv
+psycopg2-binary

@@ -5,11 +5,6 @@ services:
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
-      - key: DATABASE_URL
-        value: sqlite:////data/gym.db
       - key: PYTHON_VERSION
         value: 3.10.0
-    disk:
-      name: gymdata
-      mountPath: /data
-      sizeGB: 1
+      # You will add DATABASE_URL manually in the Render Dashboard
