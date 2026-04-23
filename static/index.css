@@ -527,6 +527,27 @@ select.form-control option {
 
     .chart-container { height: 300px; }
 
+    /* --- Offline Sync Toast --- */
+    .sync-toast {
+        position: fixed;
+        bottom: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--accent-gradient);
+        color: white;
+        padding: 12px 24px;
+        border-radius: 50px;
+        font-weight: 600;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        z-index: 10000;
+        animation: slideUp 0.3s ease-out;
+    }
+
+    @keyframes slideUp {
+        from { transform: translate(-50%, 100%); opacity: 0; }
+        to { transform: translate(-50%, 0); opacity: 1; }
+    }
+
     /* ── Bottom Navigation Bar ── */
     .bottom-nav {
         display: flex;

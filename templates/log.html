@@ -187,14 +187,53 @@
     function closeModal() {
         document.getElementById("exerciseModal").classList.remove("show");
         document.body.style.overflow = "auto";
-        document.getElementById("exerciseSearch").value = "";
-        document.getElementById("categoryTabs").style.display = "flex";
-        // Reset to active tab
-        const activeTab = document.querySelector(".tab-btn.active");
-        if(activeTab) {
-            renderExercises(activeTab.innerText);
+        
+        function toggleForm(category) {
+        document.getElementById('strength-form').classList.toggle('hidden', category !== 'strength');
+        document.getElementById('cardio-form').classList.toggle('hidden', category !== 'cardio');
+        
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.onclick.toString().includes(category));
+        });
+    }
+
+    // --- Offline-First Submission Handler ---
+    async function handleLog(event, url) {
+        event.preventDefault();
+        const form = event.target;
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+
+        if (!navigator.onLine) {
+            syncQueue.saveLocally(url, data);
+            form.reset();
+            return;
+        }
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                body: new URLSearchParams(data),
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+            });
+
+            if (response.ok) {
+                syncQueue.showToast('✅ Logged successfully!');
+                form.reset();
+            } else {
+                throw new Error('Server error');
+            }
+        } catch (err) {
+            console.error('Submission failed, saving locally:', err);
+            syncQueue.saveLocally(url, data);
+            form.reset();
         }
     }
+
+    // Attach listeners
+    document.getElementById('strength-log-form').onsubmit = (e) => handleLog(e, '/log/strength');
+    document.getElementById('cardio-log-form').onsubmit = (e) => handleLog(e, '/log/cardio');
+</script>
 
     // Search functionality
     document.getElementById("exerciseSearch").addEventListener("input", function(e) {

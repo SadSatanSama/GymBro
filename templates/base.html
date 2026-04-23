@@ -19,6 +19,55 @@
     
     <!-- Theme Initialization (Prevents FOUC) -->
     <script>
+        // --- Sync Queue System ---
+        const syncQueue = {
+            async sync() {
+                if (!navigator.onLine) return;
+                const pending = JSON.parse(localStorage.getItem('pending_logs') || '[]');
+                if (pending.length === 0) return;
+
+                console.log(`Syncing ${pending.length} offline logs...`);
+                
+                const remaining = [];
+                for (const log of pending) {
+                    try {
+                        const response = await fetch(log.url, {
+                            method: 'POST',
+                            body: new URLSearchParams(log.data),
+                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+                        });
+                        if (!response.ok) throw new Error('Sync failed');
+                    } catch (err) {
+                        remaining.push(log);
+                    }
+                }
+                
+                localStorage.setItem('pending_logs', JSON.stringify(remaining));
+                if (remaining.length === 0) {
+                    this.showToast('✅ Workouts synced to cloud!');
+                }
+            },
+            
+            saveLocally(url, data) {
+                const pending = JSON.parse(localStorage.getItem('pending_logs') || '[]');
+                pending.push({ url, data, timestamp: new Date().toISOString() });
+                localStorage.setItem('pending_logs', JSON.stringify(pending));
+                this.showToast('📶 Offline: Saved to phone!');
+            },
+
+            showToast(msg) {
+                const toast = document.createElement('div');
+                toast.className = 'sync-toast';
+                toast.innerText = msg;
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 3000);
+            }
+        };
+
+        // Listen for online status
+        window.addEventListener('online', () => syncQueue.sync());
+        window.addEventListener('load', () => syncQueue.sync());
+
         // Register Service Worker
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('/static/sw.js');
