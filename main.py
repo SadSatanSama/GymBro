@@ -121,8 +121,8 @@ async def dashboard(
         weekly_reps.append(max_r)
         weekly_cardio.append(max_c)
         
-    # Calculate current streak
-    unique_dates_raw = [d[0] for d in db.query(models.Workout.date).distinct().order_by(models.Workout.date.desc()).all()]
+    # Calculate current streak (only counting days with at least one set)
+    unique_dates_raw = [d[0] for d in db.query(models.Workout.date).join(models.Set).distinct().order_by(models.Workout.date.desc()).all()]
     unique_dates = [d.isoformat() if hasattr(d, 'isoformat') else str(d) for d in unique_dates_raw]
     
     current_streak = 0
@@ -141,7 +141,7 @@ async def dashboard(
 
     # Calculate workouts this week
     week_start = today - timedelta(days=today.weekday())
-    workouts_this_week = db.query(models.Workout).filter(models.Workout.date >= week_start).count()
+    workouts_this_week = db.query(models.Workout).join(models.Set).filter(models.Workout.date >= week_start).distinct().count()
 
     return templates.TemplateResponse(
         request=request,
@@ -418,7 +418,17 @@ async def delete_workout_exercise(workout_id: int, exercise_name: str, db: Sessi
     ).delete()
     
     db.commit()
-    return {"status": "success", "deleted_count": sets_deleted}
+    
+    # Check if the workout is now empty
+    remaining_sets = db.query(models.Set).filter(models.Set.workout_id == workout_id).count()
+    if remaining_sets == 0:
+        workout = db.query(models.Workout).filter(models.Workout.id == workout_id).first()
+        if workout:
+            db.delete(workout)
+            db.commit()
+            return {"status": "success", "deleted_count": sets_deleted, "workout_deleted": True}
+            
+    return {"status": "success", "deleted_count": sets_deleted, "workout_deleted": False}
 
 @app.post("/workout/{workout_id}/category")
 async def update_workout_category(workout_id: int, category: str = Form(...), db: Session = Depends(get_db)):
