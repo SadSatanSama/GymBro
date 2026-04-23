@@ -21,6 +21,15 @@
 </div>
 
 <div class="history-list" id="historyList">
+    <!-- Pending Offline Logs -->
+    <div id="pendingHistoryContainer" style="display: none; margin-bottom: 2rem; border: 1px solid var(--accent-orange); border-radius: 12px; padding: 1rem; background: rgba(255, 165, 0, 0.05);">
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; color: var(--accent-orange);">
+            <span class="sync-pulse" style="width: 10px; height: 10px; background: var(--accent-orange); border-radius: 50%;"></span>
+            <h4 style="margin: 0;">Pending Offline Logs</h4>
+        </div>
+        <div id="pendingList"></div>
+    </div>
+
     {% if history_data %}
         {% for workout in history_data %}
             {% include 'partial_workout_card.html' %}
@@ -142,8 +151,38 @@
         }
     }
 
+    function displayPendingLogs() {
+        const queue = JSON.parse(localStorage.getItem('syncQueue') || '[]');
+        const container = document.getElementById('pendingHistoryContainer');
+        const list = document.getElementById('pendingList');
+        
+        if (queue.length === 0) {
+            container.style.display = 'none';
+            return;
+        }
+
+        container.style.display = 'block';
+        list.innerHTML = '';
+        
+        // Group by exercise name just for visual clarity
+        const summary = {};
+        queue.forEach(item => {
+            const name = item.data.exercise_name;
+            if (!summary[name]) summary[name] = 0;
+            summary[name]++;
+        });
+
+        Object.keys(summary).forEach(name => {
+            const row = document.createElement('div');
+            row.style.cssText = "display: flex; justify-content: space-between; font-size: 0.9rem; padding: 0.5rem; border-bottom: 1px solid rgba(255,165,0,0.1); color: var(--text-muted);";
+            row.innerHTML = `<span>${name}</span> <span style="color: var(--accent-orange); font-weight: 600;">${summary[name]} set(s) pending</span>`;
+            list.appendChild(row);
+        });
+    }
+
     // --- Init ---
     window.addEventListener('DOMContentLoaded', () => {
+        displayPendingLogs();
         const savedMode = sessionStorage.getItem('historyMode') || 'weight';
         const savedDate = sessionStorage.getItem('historyFilterDate');
         if (savedDate) document.getElementById('dateFilter').value = savedDate;

@@ -9,58 +9,39 @@
 {% block content %}
 <div class="dashboard-grid">
     <div class="stat-card glass">
-        <div class="stat-icon" style="display: flex; align-items: center; justify-content: center;"><svg
-                xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path
-                    d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2" />
-            </svg></div>
+        <div class="stat-icon" style="display: flex; align-items: center; justify-content: center;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2" /></svg>
+        </div>
         <div class="stat-info">
             <h3>Total Volume</h3>
-            <p class="stat-value">{{ total_volume | default("0", true) }} kg</p>
+            <p id="stat-total-volume" class="stat-value" data-base-value="{{ total_volume | default('0', true) }}">{{ total_volume | default("0", true) }} kg</p>
         </div>
     </div>
     <div class="stat-card glass">
-        <div class="stat-icon" style="display: flex; align-items: center; justify-content: center;"><svg
-                xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path
-                    d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
-            </svg></div>
+        <div class="stat-icon" style="display: flex; align-items: center; justify-content: center;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" /></svg>
+        </div>
         <div class="stat-info">
             <h3>Workouts This Week</h3>
-            <p class="stat-value">{{ workouts_this_week }}</p>
+            <p id="stat-workouts-week" class="stat-value" data-base-value="{{ workouts_this_week }}">{{ workouts_this_week }}</p>
         </div>
     </div>
     <div class="stat-card glass">
-        <div class="stat-icon" style="display: flex; align-items: center; justify-content: center;"><svg
-                xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
-                <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
-                <path d="M4 22h16" />
-                <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
-                <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
-                <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
-            </svg></div>
+        <div class="stat-icon" style="display: flex; align-items: center; justify-content: center;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" /><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" /><path d="M4 22h16" /><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" /><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" /><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" /></svg>
+        </div>
         <div class="stat-info">
             <h3>Current Streak</h3>
-            <p class="stat-value">{{ current_streak }} {{ 'day' if current_streak == 1 else 'days' }}</p>
+            <p id="stat-current-streak" class="stat-value" data-base-value="{{ current_streak }}">{{ current_streak }} {{ 'day' if current_streak == 1 else 'days' }}</p>
         </div>
     </div>
     <div class="stat-card glass">
-        <div class="stat-icon" style="display: flex; align-items: center; justify-content: center;"><svg
-                xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M18.8 19.7c-2.4-2.1-5.1-4.2-8.8-4.2-3.7 0-6.4 2.1-8.8 4.2" />
-                <path d="M18.8 15.7c-2.4-2.1-5.1-4.2-8.8-4.2-3.7 0-6.4 2.1-8.8 4.2" />
-                <path d="M18.8 11.7c-2.4-2.1-5.1-4.2-8.8-4.2-3.7 0-6.4 2.1-8.8 4.2" />
-                <path d="M10 5.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
-                <path d="M10 5.5v3.5l3.5 3.5" />
-            </svg></div>
+        <div class="stat-icon" style="display: flex; align-items: center; justify-content: center;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.8 19.7c-2.4-2.1-5.1-4.2-8.8-4.2-3.7 0-6.4 2.1-8.8 4.2" /><path d="M18.8 15.7c-2.4-2.1-5.1-4.2-8.8-4.2-3.7 0-6.4 2.1-8.8 4.2" /><path d="M18.8 11.7c-2.4-2.1-5.1-4.2-8.8-4.2-3.7 0-6.4 2.1-8.8 4.2" /><path d="M10 5.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" /><path d="M10 5.5v3.5l3.5 3.5" /></svg>
+        </div>
         <div class="stat-info">
             <h3>Total Cardio</h3>
-            <p class="stat-value cardio-value">{{ total_cardio_dist }} <span class="unit-dist">km</span> / {{ total_cardio_min }} min</p>
+            <p id="stat-total-cardio" class="stat-value cardio-value" data-base-dist="{{ total_cardio_dist }}" data-base-min="{{ total_cardio_min }}">{{ total_cardio_dist }} <span class="unit-dist">km</span> / {{ total_cardio_min }} min</p>
         </div>
     </div>
 </div>
@@ -68,26 +49,19 @@
 <div class="charts-section">
     <div class="chart-container glass">
         <form action="/" method="GET" style="width: 100%;">
-            <div class="chart-header"
-                style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem; width: 100%;">
+            <div class="chart-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem; width: 100%;">
                 <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
                     <h3 style="margin: 0; white-space: nowrap;">Progress Chart</h3>
                     <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
                         <label style="color: var(--text-muted); font-size: 0.9rem; white-space: nowrap;">From:</label>
-                        <input type="date" name="start_date" value="{{ start_date }}" class="form-control"
-                            style="padding: 0.3rem 0.5rem; font-size: 0.9rem; width: 130px; height: 34px; box-sizing: border-box;"
-                            required>
+                        <input type="date" name="start_date" value="{{ start_date }}" class="form-control" style="padding: 0.3rem 0.5rem; font-size: 0.9rem; width: 130px; height: 34px; box-sizing: border-box;" required>
                         <label style="color: var(--text-muted); font-size: 0.9rem; white-space: nowrap;">To:</label>
-                        <input type="date" name="end_date" value="{{ end_date }}" class="form-control"
-                            style="padding: 0.3rem 0.5rem; font-size: 0.9rem; width: 130px; height: 34px; box-sizing: border-box;"
-                            required>
+                        <input type="date" name="end_date" value="{{ end_date }}" class="form-control" style="padding: 0.3rem 0.5rem; font-size: 0.9rem; width: 130px; height: 34px; box-sizing: border-box;" required>
                     </div>
                 </div>
                 <div style="display: flex; gap: 0.5rem; align-items: center;">
-                    <button type="submit" class="btn-primary"
-                        style="padding: 0 1.2rem; font-size: 0.9rem; border-radius: 8px; height: 34px; min-width: 80px; display: flex; align-items: center; justify-content: center; box-sizing: border-box; font-weight: 600;">Update</button>
-                    <a href="/?all_time=true" class="glass-btn"
-                        style="padding: 0 1.2rem; font-size: 0.9rem; border-radius: 8px; height: 34px; min-width: 80px; text-decoration: none; display: flex; align-items: center; justify-content: center; box-sizing: border-box; font-weight: 600;">Clear</a>
+                    <button type="submit" class="btn-primary" style="padding: 0 1.2rem; font-size: 0.9rem; border-radius: 8px; height: 34px; min-width: 80px; display: flex; align-items: center; justify-content: center; box-sizing: border-box; font-weight: 600;">Update</button>
+                    <a href="/?all_time=true" class="glass-btn" style="padding: 0 1.2rem; font-size: 0.9rem; border-radius: 8px; height: 34px; min-width: 80px; text-decoration: none; display: flex; align-items: center; justify-content: center; box-sizing: border-box; font-weight: 600;">Clear</a>
                 </div>
             </div>
 
@@ -95,41 +69,23 @@
                 <canvas id="volumeChart"></canvas>
             </div>
 
-            <div class="chart-filters"
-                style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; gap: 0.75rem; flex-wrap: wrap;">
-                <!-- Left: Toggles -->
-                <div class="toggle-group"
-                    style="display: flex; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 8px; overflow: hidden; flex-shrink: 0;">
-                    <button id="btnChartWeight" class="toggle-btn active" onclick="setChartMode('weight')" type="button"
-                        style="white-space: nowrap;">Weight</button>
-                    <button id="btnChartReps" class="toggle-btn" onclick="setChartMode('reps')" type="button"
-                        style="white-space: nowrap;">Reps</button>
-                    <button id="btnChartCardio" class="toggle-btn" onclick="setChartMode('cardio')" type="button"
-                        style="white-space: nowrap;">Cardio</button>
+            <div class="chart-filters" style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; gap: 0.75rem; flex-wrap: wrap;">
+                <div class="toggle-group" style="display: flex; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 8px; overflow: hidden; flex-shrink: 0;">
+                    <button id="btnChartWeight" class="toggle-btn active" onclick="setChartMode('weight')" type="button">Weight</button>
+                    <button id="btnChartReps" class="toggle-btn" onclick="setChartMode('reps')" type="button">Reps</button>
+                    <button id="btnChartCardio" class="toggle-btn" onclick="setChartMode('cardio')" type="button">Cardio</button>
                 </div>
 
-                <!-- Right: Filters + Clear -->
                 <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-                    <select name="category" id="categoryFilter" class="form-control"
-                        style="padding: 0.3rem 0.5rem; font-size: 0.9rem; width: 130px; height: 34px; box-sizing: border-box; flex-shrink: 0;"
-                        onchange="this.form.submit();">
+                    <select name="category" id="categoryFilter" class="form-control" style="padding: 0.3rem 0.5rem; font-size: 0.9rem; width: 130px; height: 34px; box-sizing: border-box;" onchange="this.form.submit();">
                         <option value="">All Categories</option>
                         {% for cat in exercises_by_cat.keys() %}
                         <option value="{{ cat }}" {% if selected_category==cat %}selected{% endif %}>{{ cat }}</option>
                         {% endfor %}
                     </select>
-
-                    <select name="exercise" id="exerciseFilter" data-selected="{{ selected_exercise }}"
-                        class="form-control"
-                        style="padding: 0.3rem 0.5rem; font-size: 0.9rem; width: 150px; height: 34px; box-sizing: border-box; flex-shrink: 0;"
-                        onchange="this.form.submit();">
+                    <select name="exercise" id="exerciseFilter" data-selected="{{ selected_exercise }}" class="form-control" style="padding: 0.3rem 0.5rem; font-size: 0.9rem; width: 150px; height: 34px; box-sizing: border-box;" onchange="this.form.submit();">
                         <option value="">All Exercises</option>
                     </select>
-
-                    {% if selected_category or selected_exercise %}
-                    <button type="button" onclick="clearBottomFilters()" class="glass-btn"
-                        style="font-size: 0.9rem; padding: 0 1rem; border-radius: 8px; cursor: pointer; height: 34px; display: flex; align-items: center; white-space: nowrap; flex-shrink: 0; font-weight: 600;">Clear</button>
-                    {% endif %}
                 </div>
             </div>
         </form>
@@ -148,42 +104,37 @@
 
 <script>
     const dashboardData = JSON.parse(document.getElementById('dashboard-data').textContent);
-    const exercisesByCat = dashboardData.exercisesByCat;
-    const selectedExercise = document.getElementById("exerciseFilter").getAttribute("data-selected");
+    let volumeChart;
 
-    function updateExerciseDropdown() {
-        const catSelect = document.getElementById("categoryFilter");
-        const exSelect = document.getElementById("exerciseFilter");
-        const selectedCat = catSelect.value;
-
-        exSelect.innerHTML = '<option value="">All Exercises</option>';
-
-        let exercises = [];
-        if (selectedCat && exercisesByCat[selectedCat]) {
-            exercises = exercisesByCat[selectedCat];
-        } else if (!selectedCat) {
-            Object.values(exercisesByCat).forEach(list => {
-                exercises = exercises.concat(list);
-            });
-            exercises = [...new Set(exercises)].sort();
-        }
-
-        exercises.forEach(ex => {
-            const opt = document.createElement('option');
-            opt.value = ex;
-            opt.innerText = ex;
-            if (ex === selectedExercise) {
-                opt.selected = true;
+    // --- Chart Core ---
+    function initChart() {
+        const ctx = document.getElementById('volumeChart').getContext('2d');
+        const theme = getChartTheme();
+        volumeChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: dashboardData.weeklyLabels,
+                datasets: [{
+                    label: 'Max Weight (kg)',
+                    data: [...dashboardData.weeklyWeight],
+                    borderColor: '#FF3366',
+                    backgroundColor: 'rgba(255, 51, 102, 0.2)',
+                    borderWidth: 3,
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, grid: { color: theme.grid }, ticks: { color: theme.text } },
+                    x: { grid: { color: theme.grid }, ticks: { color: theme.text } }
+                },
+                plugins: { legend: { labels: { color: theme.legend } } }
             }
-            exSelect.appendChild(opt);
         });
     }
-
-    updateExerciseDropdown();
-
-    const weeklyWeight = dashboardData.weeklyWeight;
-    const weeklyReps = dashboardData.weeklyReps;
-    const weeklyCardio = dashboardData.weeklyCardio;
 
     function getChartTheme() {
         const isLight = document.documentElement.getAttribute('data-theme') === 'light';
@@ -194,40 +145,145 @@
         };
     }
 
-    const ctx = document.getElementById('volumeChart').getContext('2d');
-    const theme = getChartTheme();
-    const volumeChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: dashboardData.weeklyLabels,
-            datasets: [{
-                label: 'Max Weight (kg)',
-                data: weeklyWeight,
-                borderColor: '#FF3366',
-                backgroundColor: 'rgba(255, 51, 102, 0.2)',
-                borderWidth: 3,
-                tension: 0.4,
-                fill: true
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: { color: theme.grid },
-                    ticks: { color: theme.text }
-                },
-                x: {
-                    grid: { color: theme.grid },
-                    ticks: { color: theme.text }
-                }
-            },
-            plugins: {
-                legend: { labels: { color: theme.legend } }
+    // --- Live Stats Sync ---
+    function syncLiveStats() {
+        const queue = JSON.parse(localStorage.getItem('syncQueue') || '[]');
+        if (queue.length === 0) return;
+
+        console.log("Dashboard: Syncing", queue.length, "pending sets into view...");
+        
+        const weightUnit = localStorage.getItem('weightUnit') || 'kg';
+        let extraWeight = 0;
+        let extraCardioDist = 0;
+        let extraCardioMin = 0;
+        let pendingDates = new Set();
+        
+        let today = new Date().toISOString().split('T')[0];
+        let todayPendingWeight = 0;
+        let todayPendingReps = 0;
+        let todayPendingCardio = 0;
+
+        queue.forEach(item => {
+            const data = item.data;
+            const w = parseFloat(data.weight) || 0;
+            const r = parseInt(data.reps) || 0;
+            const isCardio = data.workout_category === 'Cardio' || data.workout_category === 'HIIT';
+
+            if (isCardio) {
+                extraCardioDist += w;
+                extraCardioMin += r;
+            } else {
+                extraWeight += (w * r);
             }
+
+            pendingDates.add(data.workout_date);
+
+            // Tracking for chart (today only for simplicity)
+            if (data.workout_date === today) {
+                if (isCardio) todayPendingCardio = Math.max(todayPendingCardio, r);
+                else {
+                    todayPendingWeight = Math.max(todayPendingWeight, w);
+                    todayPendingReps = Math.max(todayPendingReps, r);
+                }
+            }
+        });
+
+        // Update Stat Cards
+        const volumeEl = document.getElementById('stat-total-volume');
+        const baseVolume = parseFloat(volumeEl.dataset.baseValue);
+        volumeEl.innerText = `${(baseVolume + extraWeight).toFixed(1)} ${weightUnit}`;
+        volumeEl.style.color = "var(--accent-orange)"; // Highlight pending
+
+        const cardioEl = document.getElementById('stat-total-cardio');
+        const baseDist = parseFloat(cardioEl.dataset.baseDist);
+        const baseMin = parseInt(cardioEl.dataset.baseMin);
+        cardioEl.innerHTML = `${(baseDist + extraCardioDist).toFixed(1)} <span class="unit-dist">km</span> / ${baseMin + extraCardioMin} min`;
+        cardioEl.style.color = "var(--accent-orange)";
+
+        // Workouts this week (rough estimate)
+        const workoutsEl = document.getElementById('stat-workouts-week');
+        const baseWorkouts = parseInt(workoutsEl.dataset.baseValue);
+        workoutsEl.innerText = baseWorkouts + pendingDates.size;
+        workoutsEl.style.color = "var(--accent-orange)";
+
+        // Update Chart for today
+        const lastIdx = dashboardData.weeklyLabels.length - 1;
+        if (dashboardData.weeklyLabels[lastIdx].includes(new Date().getDate())) {
+            dashboardData.weeklyWeight[lastIdx] = Math.max(dashboardData.weeklyWeight[lastIdx], todayPendingWeight);
+            dashboardData.weeklyReps[lastIdx] = Math.max(dashboardData.weeklyReps[lastIdx], todayPendingReps);
+            dashboardData.weeklyCardio[lastIdx] = Math.max(dashboardData.weeklyCardio[lastIdx], todayPendingCardio);
+            setChartMode(sessionStorage.getItem("dashboardChartMode") || 'weight');
         }
+    }
+
+    function setChartMode(mode) {
+        const btnWeight = document.getElementById('btnChartWeight');
+        const btnReps = document.getElementById('btnChartReps');
+        const btnCardio = document.getElementById('btnChartCardio');
+
+        document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+
+        if (mode === 'weight') {
+            btnWeight.classList.add('active');
+            volumeChart.data.datasets[0].label = `Max Weight (${localStorage.getItem('weightUnit') || 'kg'})`;
+            volumeChart.data.datasets[0].data = [...dashboardData.weeklyWeight];
+            volumeChart.data.datasets[0].borderColor = '#FF3366';
+            volumeChart.data.datasets[0].backgroundColor = 'rgba(255, 51, 102, 0.2)';
+        } else if (mode === 'reps') {
+            btnReps.classList.add('active');
+            volumeChart.data.datasets[0].label = 'Max Reps';
+            volumeChart.data.datasets[0].data = [...dashboardData.weeklyReps];
+            volumeChart.data.datasets[0].borderColor = '#4ECDC4';
+            volumeChart.data.datasets[0].backgroundColor = 'rgba(78, 205, 196, 0.2)';
+        } else {
+            btnCardio.classList.add('active');
+            volumeChart.data.datasets[0].label = 'Max Duration (min)';
+            volumeChart.data.datasets[0].data = [...dashboardData.weeklyCardio];
+            volumeChart.data.datasets[0].borderColor = '#A78BFA';
+            volumeChart.data.datasets[0].backgroundColor = 'rgba(167, 139, 250, 0.2)';
+        }
+        volumeChart.update();
+        sessionStorage.setItem("dashboardChartMode", mode);
+    }
+
+    // --- Dropdowns & Filters ---
+    function updateExerciseDropdown() {
+        const catSelect = document.getElementById("categoryFilter");
+        const exSelect = document.getElementById("exerciseFilter");
+        const selectedCat = catSelect.value;
+        const selectedExercise = exSelect.getAttribute("data-selected");
+
+        exSelect.innerHTML = '<option value="">All Exercises</option>';
+        let exercises = [];
+        if (selectedCat && exercisesByCat[selectedCat]) {
+            exercises = exercisesByCat[selectedCat];
+        } else if (!selectedCat) {
+            Object.values(exercisesByCat).forEach(list => exercises = exercises.concat(list));
+            exercises = [...new Set(exercises)].sort();
+        }
+
+        exercises.forEach(ex => {
+            const opt = document.createElement('option');
+            opt.value = ex;
+            opt.innerText = ex;
+            if (ex === selectedExercise) opt.selected = true;
+            exSelect.appendChild(opt);
+        });
+    }
+
+    // --- Init ---
+    window.addEventListener("DOMContentLoaded", () => {
+        initChart();
+        syncLiveStats(); // Inject offline data immediately
+        updateExerciseDropdown();
+        
+        const savedMode = sessionStorage.getItem("dashboardChartMode") || 'weight';
+        setChartMode(savedMode);
+
+        // Apply visual units
+        const weightUnit = localStorage.getItem('weightUnit') || 'kg';
+        const distanceUnit = localStorage.getItem('distanceUnit') || 'km';
+        document.querySelector('.unit-dist').innerText = distanceUnit === 'km' ? 'km' : 'mi';
     });
 
     window.addEventListener('themeChanged', () => {
@@ -238,72 +294,6 @@
         volumeChart.options.scales.x.ticks.color = newTheme.text;
         volumeChart.options.plugins.legend.labels.color = newTheme.legend;
         volumeChart.update();
-    });
-
-    function setChartMode(mode) {
-        const btnWeight = document.getElementById('btnChartWeight');
-        const btnReps = document.getElementById('btnChartReps');
-        const btnCardio = document.getElementById('btnChartCardio');
-
-        btnWeight.classList.remove('active');
-        btnReps.classList.remove('active');
-        btnCardio.classList.remove('active');
-
-        if (mode === 'weight') {
-            btnWeight.classList.add('active');
-            volumeChart.data.datasets[0].label = `Max Weight (${localStorage.getItem('weightUnit') || 'kg'})`;
-            volumeChart.data.datasets[0].data = weeklyWeight;
-            volumeChart.data.datasets[0].borderColor = '#FF3366';
-            volumeChart.data.datasets[0].backgroundColor = 'rgba(255, 51, 102, 0.2)';
-        } else if (mode === 'reps') {
-            btnReps.classList.add('active');
-            volumeChart.data.datasets[0].label = 'Max Reps';
-            volumeChart.data.datasets[0].data = weeklyReps;
-            volumeChart.data.datasets[0].borderColor = '#4ECDC4';
-            volumeChart.data.datasets[0].backgroundColor = 'rgba(78, 205, 196, 0.2)';
-        } else {
-            btnCardio.classList.add('active');
-            volumeChart.data.datasets[0].label = 'Max Duration (min)';
-            volumeChart.data.datasets[0].data = weeklyCardio;
-            volumeChart.data.datasets[0].borderColor = '#A78BFA';
-            volumeChart.data.datasets[0].backgroundColor = 'rgba(167, 139, 250, 0.2)';
-        }
-
-        volumeChart.update();
-        sessionStorage.setItem("dashboardChartMode", mode);
-    }
-
-    function applyDashboardUnits() {
-        const weightUnit = localStorage.getItem('weightUnit') || 'kg';
-        const distanceUnit = localStorage.getItem('distanceUnit') || 'km';
-        
-        // Update Total Volume label
-        const volumeValue = document.querySelector('.stat-card:nth-child(1) .stat-info .stat-value');
-        if (volumeValue) volumeValue.innerHTML = volumeValue.innerHTML.replace('kg', weightUnit).replace('lbs', weightUnit);
-
-        // Update Total Cardio distance label
-        const distUnitLabel = document.querySelector('.unit-dist');
-        if (distUnitLabel) distUnitLabel.innerText = distanceUnit === 'km' ? 'km' : 'mi';
-    }
-
-    // Init on load
-    window.addEventListener("DOMContentLoaded", () => {
-        applyDashboardUnits();
-        const savedMode = sessionStorage.getItem("dashboardChartMode") || 'weight';
-        setChartMode(savedMode);
-
-        const urlParams = new URLSearchParams(window.location.search);
-
-        // If the URL has explicit filter parameters, save them
-        if (urlParams.has('start_date') || urlParams.has('all_time') || urlParams.has('category') || urlParams.has('exercise')) {
-            sessionStorage.setItem("dashboardQuery", window.location.search);
-        } else {
-            // If the URL is empty but we have a saved filter, instantly restore it
-            const savedQuery = sessionStorage.getItem("dashboardQuery");
-            if (savedQuery && savedQuery !== window.location.search) {
-                window.location.replace('/' + savedQuery);
-            }
-        }
     });
 </script>
 {% endblock %}
