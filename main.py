@@ -28,6 +28,17 @@ app = FastAPI(title="Gym Progress Tracker")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
+@app.get("/.well-known/assetlinks.json")
+async def get_assetlinks():
+    return [{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "com.onrender.gymbro_euvi.twa",
+        "sha256_cert_fingerprints": ["AC:38:CB:A1:D9:B8:F6:FB:E0:59:64:01:16:DD:E4:DE:39:9B:05:43:55:E2:8C:16:DB:EF:DD:DD:77:ED:C5:AB"]
+      }
+    }]
+
 @app.get("/sw.js")
 async def get_sw():
     from fastapi.responses import FileResponse
