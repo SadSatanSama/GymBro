@@ -91,19 +91,21 @@ async def dashboard(
 
     delta = (e_date - s_date).days
     
-    # Extract all unique categories and exercises for the dropdowns
+    # Extract all unique categories and exercises safely
     exercises_by_cat = {}
     all_workouts = db.query(models.Workout).all()
     for w in all_workouts:
-        if w.category not in exercises_by_cat:
-            exercises_by_cat[w.category] = set()
+        cat = w.category or "Uncategorized"
+        if cat not in exercises_by_cat:
+            exercises_by_cat[cat] = set()
         for s in w.sets:
             if s.exercise and s.exercise.name:
-                exercises_by_cat[w.category].add(s.exercise.name)
+                exercises_by_cat[cat].add(s.exercise.name)
     
-    # Sort the data
-    for k in exercises_by_cat:
-        exercises_by_cat[k] = sorted(list(exercises_by_cat[k]))
+    # Convert sets to sorted lists for JSON serialization
+    safe_exercises_by_cat = {}
+    for k, v in exercises_by_cat.items():
+        safe_exercises_by_cat[k] = sorted(list(v))
         
     weekly_labels = []
     weekly_weight = []
@@ -137,23 +139,22 @@ async def dashboard(
         weekly_reps.append(max_r)
         weekly_cardio.append(max_c)
         
-    # Calculate current streak (only counting days with at least one set)
-    unique_dates_raw = [d[0] for d in db.query(models.Workout.date).join(models.Set).distinct().order_by(models.Workout.date.desc()).all()]
-    unique_dates = [d.isoformat() if hasattr(d, 'isoformat') else str(d) for d in unique_dates_raw]
+    # Calculate current streak safely
+    unique_dates_raw = db.query(models.Workout.date).join(models.Set).distinct().all()
+    unique_dates = {d[0].isoformat() for d in unique_dates_raw if d[0]}
     
     current_streak = 0
     if unique_dates:
         check_date = today
-        check_str = check_date.isoformat()
-        
-        if check_str not in unique_dates:
-            check_date -= timedelta(days=1)
-            check_str = check_date.isoformat()
-            
-        while check_str in unique_dates:
-            current_streak += 1
-            check_date -= timedelta(days=1)
-            check_str = check_date.isoformat()
+        while check_date.isoformat() in unique_dates or (check_date == today and (check_date - timedelta(days=1)).isoformat() in unique_dates):
+            if check_date.isoformat() in unique_dates:
+                current_streak += 1
+                check_date -= timedelta(days=1)
+            else:
+                # If today hasn't been logged yet, but yesterday was, the streak is still alive
+                check_date -= timedelta(days=1)
+                if check_date.isoformat() not in unique_dates:
+                    break
 
     # Calculate workouts this week
     week_start = today - timedelta(days=today.weekday())
@@ -176,7 +177,7 @@ async def dashboard(
             "end_date": e_date.isoformat(),
             "selected_category": category or "",
             "selected_exercise": exercise or "",
-            "exercises_by_cat": exercises_by_cat
+            "exercises_by_cat": safe_exercises_by_cat
         }
     )
 
