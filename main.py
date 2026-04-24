@@ -95,13 +95,13 @@ async def get_current_user(request: Request, db: Session = Depends(get_db)):
 # --- Auth Routes ---
 @app.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
-    return templates.TemplateResponse("login.html", {"request": request, "user": None})
+    return templates.TemplateResponse(request=request, name="login.html", context={"user": None})
 
 @app.post("/login")
 async def login(request: Request, email: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.email == email).first()
     if not user or not verify_password(password, user.hashed_password):
-        return templates.TemplateResponse("login.html", {"request": request, "error": "Invalid email or password", "user": None})
+        return templates.TemplateResponse(request=request, name="login.html", context={"error": "Invalid email or password", "user": None})
     
     token = create_access_token(data={"sub": email})
     response = RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
@@ -110,13 +110,13 @@ async def login(request: Request, email: str = Form(...), password: str = Form(.
 
 @app.get("/register", response_class=HTMLResponse)
 async def register_page(request: Request):
-    return templates.TemplateResponse("register.html", {"request": request, "user": None})
+    return templates.TemplateResponse(request=request, name="register.html", context={"user": None})
 
 @app.post("/register")
 async def register(request: Request, username: str = Form(...), email: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
     existing_user = db.query(models.User).filter(models.User.email == email).first()
     if existing_user:
-        return templates.TemplateResponse("register.html", {"request": request, "error": "Email already registered", "user": None})
+        return templates.TemplateResponse(request=request, name="register.html", context={"error": "Email already registered", "user": None})
     
     hashed_pwd = get_password_hash(password)
     new_user = models.User(email=email, hashed_password=hashed_pwd, username=username)
