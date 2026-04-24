@@ -103,24 +103,43 @@
 
     // --- Core Logic ---
     async function fetchExercises() {
+        const cachedExercises = localStorage.getItem('gymbro_exercise_db');
+        
+        // If offline, try to load from cache immediately
         if (!isAppOnline()) {
-            console.log("Log: Always Offline mode, skipping exercise fetch.");
+            if (cachedExercises) {
+                console.log("Log: Loading exercises from local cache...");
+                processExerciseData(JSON.parse(cachedExercises));
+            } else {
+                showToast("⚠️ Connect once to download exercise list for offline use.", "error");
+            }
             return;
         }
+
         try {
             const response = await fetch("https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json");
             const data = await response.json();
-            data.forEach(item => {
-                let category = item.equipment || 'Other';
-                category = category.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-                let exName = item.name.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-                if (!exercisesByCategory[category]) exercisesByCategory[category] = [];
-                if (!exercisesByCategory[category].includes(exName)) exercisesByCategory[category].push(exName);
-            });
-            renderCategoryTabs();
+            
+            // Save to cache for future offline use
+            localStorage.setItem('gymbro_exercise_db', JSON.stringify(data));
+            processExerciseData(data);
         } catch (error) {
-            console.error("Failed to load exercises:", error);
+            console.error("Failed to load exercises, trying cache:", error);
+            if (cachedExercises) {
+                processExerciseData(JSON.parse(cachedExercises));
+            }
         }
+    }
+
+    function processExerciseData(data) {
+        data.forEach(item => {
+            let category = item.equipment || 'Other';
+            category = category.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+            let exName = item.name.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+            if (!exercisesByCategory[category]) exercisesByCategory[category] = [];
+            if (!exercisesByCategory[category].includes(exName)) exercisesByCategory[category].push(exName);
+        });
+        renderCategoryTabs();
     }
 
     function renderCategoryTabs() {
