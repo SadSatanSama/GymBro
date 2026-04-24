@@ -14,8 +14,7 @@ import google.generativeai as genai
 
 # Security Imports
 from jose import JWTError, jwt
-from passlib.context import CryptContext
-from fastapi.security import OAuth2PasswordBearer
+import bcrypt
 
 load_dotenv()
 
@@ -23,8 +22,6 @@ load_dotenv()
 SECRET_KEY = os.getenv("SECRET_KEY", "gymbro-super-secret-key-change-this-in-prod")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7 # 1 week
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 GYMBRO_SYSTEM_PROMPT = """You are GymBro, a friendly and knowledgeable AI fitness assistant built into a gym tracking app.
 You ONLY answer questions related to: gym workouts, exercise form, training programs, muscle groups, fitness goals, sports nutrition, diet, supplements, rest and recovery, body composition, and general health and wellness.
@@ -41,11 +38,11 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 # Helper functions for Auth
-def get_password_hash(password):
-    return pwd_context.hash(password)
+def get_password_hash(password: str) -> str:
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
-def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
 
 def create_access_token(data: dict):
     to_encode = data.copy()
@@ -166,16 +163,10 @@ async def dashboard(
     total_cardio_dist = sum(s.weight for s in sets_query.filter(models.Workout.category.in_(["Cardio", "HIIT"])).all() if s.weight)
     
     today = date.today()
+    # Default: show from today. The user can manually filter to see older data.
+    # This gives a clean starting point, especially for new users.
+    s_date = today
     e_date = today
-    
-    # Set default start date to the user's first ever workout
-    # If no workouts exist, default to today
-    first_workout = db.query(models.Workout).filter(models.Workout.user_id == current_user.id).order_by(models.Workout.date.asc()).first()
-    
-    if first_workout:
-        s_date = first_workout.date
-    else:
-        s_date = today
 
     # Override with manual filters if provided
     if start_date:
@@ -188,7 +179,7 @@ async def dashboard(
             e_date = datetime.strptime(end_date, "%Y-%m-%d").date()
         except ValueError:
             pass
-            
+
     if e_date < s_date:
         e_date = s_date
 
