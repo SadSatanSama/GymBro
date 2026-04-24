@@ -103,6 +103,10 @@
 
     // --- Core Logic ---
     async function fetchExercises() {
+        if (!isAppOnline()) {
+            console.log("Log: Always Offline mode, skipping exercise fetch.");
+            return;
+        }
         try {
             const response = await fetch("https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json");
             const data = await response.json();
@@ -221,15 +225,16 @@
             return;
         }
 
-        submitBtn.disabled = true;
-        submitBtn.innerText = "Saving...";
-
+        // --- Forced Offline Check (Before any UI changes) ---
         if (!isAppOnline()) {
             syncQueue.saveLocally('/log', data);
-            showToast("📡 Offline: Set saved locally!");
+            showToast("📡 Stored Locally (Always Offline)");
             postSubmitCleanup();
             return;
         }
+
+        submitBtn.disabled = true;
+        submitBtn.innerText = "Saving...";
 
         try {
             const response = await fetch("/log", {

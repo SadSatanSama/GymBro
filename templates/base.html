@@ -25,6 +25,21 @@
             return navigator.onLine && !forcedOffline;
         }
 
+        // --- Hard Network Interceptor (Enforce Always Offline) ---
+        (function() {
+            const originalFetch = window.fetch;
+            window.fetch = function(url, options) {
+                if (!isAppOnline()) {
+                    // Allow local/blob requests, but block everything else
+                    const isLocal = typeof url === 'string' && (url.startsWith('/') || url.startsWith(window.location.origin));
+                    if (!isLocal) {
+                        return Promise.reject(new TypeError("Always Offline mode active: Network request blocked."));
+                    }
+                }
+                return originalFetch.apply(this, arguments);
+            };
+        })();
+
         // --- Unified Sync Queue System ---
         const syncQueue = {
             async sync() {
