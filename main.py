@@ -6,6 +6,13 @@ from fastapi.templating import Jinja2Templates
 from database import init_db, SessionLocal
 from sqlalchemy.orm import Session
 from datetime import date, datetime, timedelta
+from typing import List, Optional
+try:
+    from jose import JWTError, jwt
+except ImportError:
+    # Fallback for environments where jose isn't installed yet
+    JWTError = Exception
+    jwt = None
 from pydantic import BaseModel
 import models
 import os
@@ -163,32 +170,92 @@ async def dashboard(
     total_cardio_dist = sum(s.weight for s in sets_query.filter(models.Workout.category.in_(["Cardio", "HIIT"])).all() if s.weight)
     
     today = date.today()
-    # Default: show from today. The user can manually filter to see older data.
-    # This gives a clean starting point, especially for new users.
-    s_date = today
-    e_date = today
+    
+    # --- ACTIVE DATABASE SCRUB ---
+    # Find any empty workouts (no sets) and delete them to prevent "ghost" dates
+    all_user_workouts = db.query(models.Workout).filter(models.Workout.user_id == current_user.id).all()
+    for w in all_user_workouts:
+        if not w.sets:
+            db.delete(w)
+    db.commit()
 
-    # Override with manual filters if provided
+    # --- Unified Data Retrieval ---
+    # Re-fetch cleaned workouts
+    clean_workouts = db.query(models.Workout).filter(models.Workout.user_id == current_user.id).order_by(models.Workout.date.asc()).all()
+    
+    active_workout_dates = []
+    for w in clean_workouts:
+        # Strictly only include dates that have sets (History Parity)
+        if w.sets:
+            if w.date not in active_workout_dates:
+                active_workout_dates.append(w.date)
+
+    # 2. Determine the starting point and range from filters
+    s_date_obj = None
+    e_date_obj = None
     if start_date:
         try:
-            s_date = datetime.strptime(start_date, "%Y-%m-%d").date()
-        except ValueError:
-            pass
+            s_date_obj = datetime.strptime(start_date, "%Y-%m-%d").date()
+        except ValueError: pass
     if end_date:
         try:
-            e_date = datetime.strptime(end_date, "%Y-%m-%d").date()
-        except ValueError:
-            pass
+            e_date_obj = datetime.strptime(end_date, "%Y-%m-%d").date()
+        except ValueError: pass
 
-    if e_date < s_date:
-        e_date = s_date
+    # 3. Filter active dates based on selection
+    filtered_dates = [d for d in active_workout_dates if (not s_date_obj or d >= s_date_obj) and (not e_date_obj or d <= e_date_obj)]
 
-    delta = (e_date - s_date).days
+    # 4. Handle the "7-Day Span" logic
+    if not start_date and not end_date and len(filtered_dates) > 7:
+        filtered_dates = filtered_dates[-7:]
+
+    # 5. Build the display labels with future padding
+    display_dates = filtered_dates.copy()
+    if len(display_dates) < 7:
+        last_date = display_dates[-1] if display_dates else (today - timedelta(days=1))
+        # Ensure we don't accidentally start padding from the past
+        pad_date = max(last_date, today - timedelta(days=1))
+        while len(display_dates) < 7:
+            pad_date += timedelta(days=1)
+            display_dates.append(pad_date)
+
+    weekly_labels = []
+    weekly_weight = []
+    weekly_reps = []
+    weekly_cardio = []
+    weekly_volume = []
     
-    # Extract all unique categories and exercises safely
+    for d in display_dates:
+        weekly_labels.append(d.strftime("%b %d"))
+        
+        # Aggregate stats for this specific date
+        day_sets = db.query(models.Set).join(models.Workout).filter(models.Workout.user_id == current_user.id, models.Workout.date == d).all()
+        
+        if day_sets:
+            max_w = max((s.weight for s in day_sets if s.weight), default=0)
+            max_r = max((s.reps for s in day_sets if s.reps), default=0)
+            # Total Volume = sum of weight * reps for all non-cardio sets
+            day_vol = sum(s.weight * s.reps for s in day_sets if s.weight and s.reps and s.workout and s.workout.category not in ["Cardio", "HIIT"])
+            cardio_durations = [s.reps for s in day_sets if s.reps and s.workout and s.workout.category and s.workout.category in ["Cardio", "HIIT"]]
+            max_c = max(cardio_durations, default=0)
+        else:
+            max_w = 0
+            max_r = 0
+            day_vol = 0
+            max_c = 0
+            
+        weekly_weight.append(max_w)
+        weekly_reps.append(max_r)
+        weekly_volume.append(round(day_vol, 1))
+        weekly_cardio.append(max_c)
+    
+    # Use the first and last dates in our display for the UI date inputs
+    display_start_date = display_dates[0].isoformat() if display_dates else today.isoformat()
+    display_end_date = display_dates[-1].isoformat() if display_dates else today.isoformat()
+
+    # Extract all unique categories and exercises safely for filters
     exercises_by_cat = {}
-    all_workouts = db.query(models.Workout).filter(models.Workout.user_id == current_user.id).all()
-    for w in all_workouts:
+    for w in clean_workouts:
         cat = w.category or "Uncategorized"
         if cat not in exercises_by_cat:
             exercises_by_cat[cat] = set()
@@ -200,38 +267,6 @@ async def dashboard(
     safe_exercises_by_cat = {}
     for k, v in exercises_by_cat.items():
         safe_exercises_by_cat[k] = sorted(list(v))
-        
-    weekly_labels = []
-    weekly_weight = []
-    weekly_reps = []
-    weekly_cardio = []
-    
-    for i in range(delta + 1):
-        d = s_date + timedelta(days=i)
-        weekly_labels.append(d.strftime("%b %d"))
-        
-        query = db.query(models.Set).join(models.Workout).filter(models.Workout.user_id == current_user.id, models.Workout.date == d)
-        if category:
-            query = query.filter(models.Workout.category == category)
-        if exercise:
-            query = query.join(models.Exercise).filter(models.Exercise.name == exercise)
-            
-        day_sets = query.all()
-        
-        if day_sets:
-            max_w = max((s.weight for s in day_sets if s.weight), default=0)
-            max_r = max((s.reps for s in day_sets if s.reps), default=0)
-            # Max duration for the day if it's cardio
-            cardio_durations = [s.reps for s in day_sets if s.reps and s.workout and s.workout.category and s.workout.category in ["Cardio", "HIIT"]]
-            max_c = max(cardio_durations, default=0)
-        else:
-            max_w = 0
-            max_r = 0
-            max_c = 0
-            
-        weekly_weight.append(max_w)
-        weekly_reps.append(max_r)
-        weekly_cardio.append(max_c)
         
     # Calculate current streak safely
     unique_dates_raw = db.query(models.Workout.date).join(models.Set).filter(models.Workout.user_id == current_user.id).distinct().all()
@@ -264,11 +299,12 @@ async def dashboard(
             "weekly_labels": weekly_labels,
             "weekly_weight": weekly_weight,
             "weekly_reps": weekly_reps,
+            "weekly_volume": weekly_volume,
             "weekly_cardio": weekly_cardio,
             "workouts_this_week": workouts_this_week,
             "current_streak": current_streak,
-            "start_date": s_date.isoformat(),
-            "end_date": e_date.isoformat(),
+            "start_date": display_start_date,
+            "end_date": display_end_date,
             "selected_category": category or "",
             "selected_exercise": exercise or "",
             "exercises_by_cat": safe_exercises_by_cat,
@@ -352,7 +388,8 @@ async def workout_history(request: Request, db: Session = Depends(get_db), curre
     for w in workouts:
         exercises_summary = {}
         for s in w.sets:
-            ex_name = s.exercise.name
+            # Safely get exercise name, or "Unknown" if orphaned
+            ex_name = s.exercise.name if s.exercise else "Unknown Exercise"
             if ex_name not in exercises_summary:
                 exercises_summary[ex_name] = {"max_weight": 0, "max_reps": 0, "all_sets": []}
             
@@ -366,15 +403,15 @@ async def workout_history(request: Request, db: Session = Depends(get_db), curre
             if s.reps and s.reps > exercises_summary[ex_name]["max_reps"]:
                 exercises_summary[ex_name]["max_reps"] = s.reps
                 
-        if exercises_summary or w.notes:
-            history_data.append({
-                "id": w.id,
-                "raw_date": w.date.isoformat(),
-                "display_date": w.date.strftime("%b %d, %Y"),
-                "category": w.category or "Uncategorized",
-                "notes": w.notes,
-                "exercises": exercises_summary
-            })
+        # ZERO-FILTER: Always show the workout if it exists in the DB
+        history_data.append({
+            "id": w.id,
+            "raw_date": w.date.isoformat() if w.date else "Unknown Date",
+            "display_date": w.date.strftime("%b %d, %Y") if w.date else "Unknown Date",
+            "category": w.category or "Uncategorized",
+            "notes": w.notes or "",
+            "exercises": exercises_summary
+        })
 
     return templates.TemplateResponse(
         request=request,
@@ -419,8 +456,17 @@ async def delete_exercise(exercise_id: int, db: Session = Depends(get_db), curre
     if not current_user: return JSONResponse({"status": "error"}, status_code=401)
     exercise_to_delete = db.query(models.Set).join(models.Workout).filter(models.Set.id == exercise_id, models.Workout.user_id == current_user.id).first()
     if exercise_to_delete:
+        workout_id = exercise_to_delete.workout_id
         db.delete(exercise_to_delete)
         db.commit()
+        
+        # Cleanup: If no sets left in workout, delete workout
+        remaining = db.query(models.Set).filter(models.Set.workout_id == workout_id).count()
+        if remaining == 0:
+            workout = db.query(models.Workout).filter(models.Workout.id == workout_id).first()
+            if workout:
+                db.delete(workout)
+                db.commit()
     return {"status": "success"}
 
 @app.get("/timer", response_class=HTMLResponse)

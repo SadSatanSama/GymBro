@@ -71,7 +71,8 @@
 
             <div class="chart-filters" style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; gap: 0.75rem; flex-wrap: wrap;">
                 <div class="toggle-group" style="display: flex; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 8px; overflow: hidden; flex-shrink: 0;">
-                    <button id="btnChartWeight" class="toggle-btn active" onclick="setChartMode('weight')" type="button">Weight</button>
+                    <button id="btnChartVolume" class="toggle-btn active" onclick="setChartMode('volume')" type="button">Volume</button>
+                    <button id="btnChartWeight" class="toggle-btn" onclick="setChartMode('weight')" type="button">Weight</button>
                     <button id="btnChartReps" class="toggle-btn" onclick="setChartMode('reps')" type="button">Reps</button>
                     <button id="btnChartCardio" class="toggle-btn" onclick="setChartMode('cardio')" type="button">Cardio</button>
                 </div>
@@ -97,6 +98,7 @@
     "exercisesByCat": {{ exercises_by_cat | tojson | safe }},
     "weeklyWeight": {{ weekly_weight | tojson | safe }},
     "weeklyReps": {{ weekly_reps | tojson | safe }},
+    "weeklyVolume": {{ weekly_volume | tojson | safe }},
     "weeklyCardio": {{ weekly_cardio | tojson | safe }},
     "weeklyLabels": {{ weekly_labels | tojson | safe }}
 }
@@ -110,15 +112,22 @@
     function initChart() {
         const ctx = document.getElementById('volumeChart').getContext('2d');
         const theme = getChartTheme();
+        const mode = sessionStorage.getItem('chartMode') || 'volume';
+        
+        let label = 'Total Volume (kg)';
+        let chartData = [...dashboardData.weeklyVolume];
+        let color = '#4ECDC4'; // Volume: Teal
+        let bg = 'rgba(78, 205, 196, 0.2)';
+
         volumeChart = new Chart(ctx, {
             type: 'line',
             data: {
                 labels: dashboardData.weeklyLabels,
                 datasets: [{
-                    label: 'Max Weight (kg)',
-                    data: [...dashboardData.weeklyWeight],
-                    borderColor: '#FF3366',
-                    backgroundColor: 'rgba(255, 51, 102, 0.2)',
+                    label: label,
+                    data: chartData,
+                    borderColor: color,
+                    backgroundColor: bg,
                     borderWidth: 3,
                     tension: 0.4,
                     fill: true
@@ -217,33 +226,43 @@
     }
 
     function setChartMode(mode) {
-        const btnWeight = document.getElementById('btnChartWeight');
-        const btnReps = document.getElementById('btnChartReps');
-        const btnCardio = document.getElementById('btnChartCardio');
+        sessionStorage.setItem('dashboardChartMode', mode);
+        document.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
+        
+        let label = 'Total Volume (kg)';
+        let data = [...dashboardData.weeklyVolume];
+        let color = '#4ECDC4'; // Volume: Teal
+        let bg = 'rgba(78, 205, 196, 0.2)';
 
-        document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
-
-        if (mode === 'weight') {
-            btnWeight.classList.add('active');
-            volumeChart.data.datasets[0].label = `Max Weight (${localStorage.getItem('weightUnit') || 'kg'})`;
-            volumeChart.data.datasets[0].data = [...dashboardData.weeklyWeight];
-            volumeChart.data.datasets[0].borderColor = '#FF3366';
-            volumeChart.data.datasets[0].backgroundColor = 'rgba(255, 51, 102, 0.2)';
+        if (mode === 'volume') {
+            document.getElementById('btnChartVolume').classList.add('active');
+        } else if (mode === 'weight') {
+            document.getElementById('btnChartWeight').classList.add('active');
+            label = `Max Weight (${localStorage.getItem('weightUnit') || 'kg'})`;
+            data = [...dashboardData.weeklyWeight];
+            color = '#FF3366'; // Weight: Pink
+            bg = 'rgba(255, 51, 102, 0.2)';
         } else if (mode === 'reps') {
-            btnReps.classList.add('active');
-            volumeChart.data.datasets[0].label = 'Max Reps';
-            volumeChart.data.datasets[0].data = [...dashboardData.weeklyReps];
-            volumeChart.data.datasets[0].borderColor = '#4ECDC4';
-            volumeChart.data.datasets[0].backgroundColor = 'rgba(78, 205, 196, 0.2)';
-        } else {
-            btnCardio.classList.add('active');
-            volumeChart.data.datasets[0].label = 'Max Duration (min)';
-            volumeChart.data.datasets[0].data = [...dashboardData.weeklyCardio];
-            volumeChart.data.datasets[0].borderColor = '#A78BFA';
-            volumeChart.data.datasets[0].backgroundColor = 'rgba(167, 139, 250, 0.2)';
+            document.getElementById('btnChartReps').classList.add('active');
+            label = 'Max Reps';
+            data = [...dashboardData.weeklyReps];
+            color = '#FF9F43'; // Reps: Orange
+            bg = 'rgba(255, 159, 67, 0.2)';
+        } else if (mode === 'cardio') {
+            document.getElementById('btnChartCardio').classList.add('active');
+            label = 'Max Cardio (min/km)';
+            data = [...dashboardData.weeklyCardio];
+            color = '#2E90FA'; // Cardio: Blue
+            bg = 'rgba(46, 144, 250, 0.2)';
         }
-        volumeChart.update();
-        sessionStorage.setItem("dashboardChartMode", mode);
+
+        if (volumeChart) {
+            volumeChart.data.datasets[0].label = label;
+            volumeChart.data.datasets[0].data = data;
+            volumeChart.data.datasets[0].borderColor = color;
+            volumeChart.data.datasets[0].backgroundColor = bg;
+            volumeChart.update();
+        }
     }
 
     // --- Dropdowns & Filters ---
