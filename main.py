@@ -60,7 +60,7 @@ async def get_assetlinks():
       "target": {
         "namespace": "android_app",
         "package_name": "com.onrender.gymbro_euvi.twa",
-        "sha256_fingerprints": ["AC:38:CB:A1:D9:B8:F6:FB:E0:59:64:01:16:DD:E4:DE:39:9B:05:43:55:E2:8C:16:DB:EF:DD:DD:77:ED:C5:AB"]
+        "sha256_cert_fingerprints": ["AC:38:CB:A1:D9:B8:F6:FB:E0:59:64:01:16:DD:E4:DE:39:9B:05:43:55:E2:8C:16:DB:EF:DD:DD:77:ED:C5:AB"]
       }
     }]
 
@@ -537,10 +537,13 @@ async def import_workouts(file: UploadFile = File(...), db: Session = Depends(ge
     return {"status": "success", "message": f"Successfully imported {import_count} sets!"}
 
 @app.get("/ask", response_class=HTMLResponse)
-async def ask_page(request: Request):
+async def ask_page(request: Request, current_user: models.User = Depends(get_current_user)):
+    if not current_user:
+        return RedirectResponse(url="/login")
     return templates.TemplateResponse(
         request=request,
-        name="ask.html"
+        name="ask.html",
+        context={"user": current_user}
     )
 
 class ChatMessage(BaseModel):
@@ -549,7 +552,9 @@ class ChatMessage(BaseModel):
     api_key: str = ""
 
 @app.post("/ask/chat")
-async def ask_chat(payload: ChatMessage):
+async def ask_chat(payload: ChatMessage, current_user: models.User = Depends(get_current_user)):
+    if not current_user:
+        return JSONResponse({"reply": "Please log in to talk to GymBro."}, status_code=401)
     if not payload.api_key:
         return JSONResponse({"reply": "__NO_KEY__"}, status_code=401)
     try:
@@ -570,8 +575,9 @@ async def ask_chat(payload: ChatMessage):
         return JSONResponse({"reply": "Sorry, I'm having trouble connecting right now. Please try again!"}, status_code=500)
 
 @app.delete("/workout/{workout_id}")
-async def delete_workout(workout_id: int, db: Session = Depends(get_db)):
-    workout = db.query(models.Workout).filter(models.Workout.id == workout_id).first()
+async def delete_workout(workout_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    if not current_user: return JSONResponse({"status": "error"}, status_code=401)
+    workout = db.query(models.Workout).filter(models.Workout.id == workout_id, models.Workout.user_id == current_user.id).first()
     if workout:
         db.delete(workout)
         db.commit()
@@ -579,7 +585,12 @@ async def delete_workout(workout_id: int, db: Session = Depends(get_db)):
     return {"status": "error", "message": "Workout not found"}, 404
 
 @app.delete("/workout/{workout_id}/exercise/{exercise_name}")
-async def delete_workout_exercise(workout_id: int, exercise_name: str, db: Session = Depends(get_db)):
+async def delete_workout_exercise(workout_id: int, exercise_name: str, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    if not current_user: return JSONResponse({"status": "error"}, status_code=401)
+    # Ensure workout belongs to user
+    workout_exists = db.query(models.Workout).filter(models.Workout.id == workout_id, models.Workout.user_id == current_user.id).first()
+    if not workout_exists:
+        return JSONResponse({"status": "error", "message": "Workout not found"}, status_code=404)
     exercise = db.query(models.Exercise).filter(models.Exercise.name == exercise_name).first()
     if not exercise:
         return {"status": "error", "message": "Exercise not found"}, 404
@@ -603,13 +614,15 @@ async def delete_workout_exercise(workout_id: int, exercise_name: str, db: Sessi
     return {"status": "success", "deleted_count": sets_deleted, "workout_deleted": False}
 
 @app.post("/workout/{workout_id}/category")
-async def update_workout_category(workout_id: int, category: str = Form(...), db: Session = Depends(get_db)):
-    workout = db.query(models.Workout).filter(models.Workout.id == workout_id).first()
+async def update_workout_category(workout_id: int, category: str = Form(...), db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    if not current_user: return JSONResponse({"status": "error"}, status_code=401)
+    workout = db.query(models.Workout).filter(models.Workout.id == workout_id, models.Workout.user_id == current_user.id).first()
     if not workout:
         return {"status": "error", "message": "Workout not found"}, 404
 
-    # Check if a workout with the target category already exists ON THE SAME DAY
+    # Check if a workout with the target category already exists ON THE SAME DAY FOR THIS USER
     existing_workout = db.query(models.Workout).filter(
+        models.Workout.user_id == current_user.id,
         models.Workout.date == workout.date,
         models.Workout.category == category,
         models.Workout.id != workout_id
