@@ -49,9 +49,19 @@
             </div>
             <div class="exercise-sets-dropdown" style="display: none; padding: 0.3rem 0 0.3rem 1.2rem; background: var(--dropdown-bg); border-radius: 0 0 8px 8px; margin-bottom: 0.2rem;">
                 {% for s in stats.all_sets %}
-                <div style="display: flex; gap: 1rem; font-size: 0.85rem; color: var(--text-muted); padding: 1px 0;">
-                    <span style="width: 40px;">Set {{ loop.index }}</span>
-                    <span>{{ s.weight }}<span class="unit-weight-inline">{% if workout.category == 'Cardio' or workout.category == 'HIIT' %}{% else %} kg{% endif %}</span> {% if workout.category == 'Cardio' or workout.category == 'HIIT' %}for{% else %}×{% endif %} {{ s.reps }}<span class="unit-reps-inline">{% if workout.category == 'Cardio' or workout.category == 'HIIT' %} min{% else %}{% endif %}</span></span>
+                <div class="set-row" data-set-id="{{ s.id }}" style="display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem; color: var(--text-muted); padding: 4px 1rem 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <div style="display: flex; gap: 0.8rem; align-items: center;">
+                        <span style="opacity: 0.5; width: 35px;">S{{ loop.index }}</span>
+                        <span class="set-data-text">{{ s.weight }}<span class="unit-weight-inline">{% if workout.category == 'Cardio' or workout.category == 'HIIT' %}{% else %}kg{% endif %}</span> {% if workout.category == 'Cardio' or workout.category == 'HIIT' %}for{% else %}×{% endif %} {{ s.reps }}<span class="unit-reps-inline">{% if workout.category == 'Cardio' or workout.category == 'HIIT' %}min{% else %}{% endif %}</span></span>
+                    </div>
+                    <div style="display: flex; gap: 0.6rem; align-items: center;">
+                        <button class="set-edit-btn" onclick="startEditSet(this)" style="background:none; border:none; color:var(--text-muted); opacity:0.4; cursor:pointer; padding:2px;">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                        </button>
+                        <button class="set-delete-btn" onclick="deleteSet(this)" style="background:none; border:none; color:var(--accent-red); opacity:0.4; cursor:pointer; padding:2px;">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        </button>
+                    </div>
                 </div>
                 {% endfor %}
             </div>
