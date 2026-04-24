@@ -498,9 +498,12 @@ async def update_workout_category(workout_id: int, category: str = Form(...), db
     ).first()
 
     if existing_workout:
-        # Move all sets from current workout to the existing one
-        for s in workout.sets:
-            s.workout_id = existing_workout.id
+        # Move all sets from current workout to the existing one using bulk update
+        # This avoids the "delete-orphan" cascade issue
+        db.query(models.Set).filter(models.Set.workout_id == workout.id).update(
+            {"workout_id": existing_workout.id}, 
+            synchronize_session='fetch'
+        )
         
         # Merge notes if they exist
         if workout.notes:
