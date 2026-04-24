@@ -95,13 +95,13 @@ async def get_current_user(request: Request, db: Session = Depends(get_db)):
 # --- Auth Routes ---
 @app.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
-    return templates.TemplateResponse("login.html", {"request": request})
+    return templates.TemplateResponse("login.html", {"request": request, "user": None})
 
 @app.post("/login")
 async def login(email: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.email == email).first()
     if not user or not verify_password(password, user.hashed_password):
-        return templates.TemplateResponse("login.html", {"request": {}, "error": "Invalid email or password"})
+        return templates.TemplateResponse("login.html", {"request": {}, "error": "Invalid email or password", "user": None})
     
     token = create_access_token(data={"sub": email})
     response = RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
@@ -110,13 +110,13 @@ async def login(email: str = Form(...), password: str = Form(...), db: Session =
 
 @app.get("/register", response_class=HTMLResponse)
 async def register_page(request: Request):
-    return templates.TemplateResponse("register.html", {"request": request})
+    return templates.TemplateResponse("register.html", {"request": request, "user": None})
 
 @app.post("/register")
 async def register(username: str = Form(...), email: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
     existing_user = db.query(models.User).filter(models.User.email == email).first()
     if existing_user:
-        return templates.TemplateResponse("register.html", {"request": {}, "error": "Email already registered"})
+        return templates.TemplateResponse("register.html", {"request": {}, "error": "Email already registered", "user": None})
     
     hashed_pwd = get_password_hash(password)
     new_user = models.User(email=email, hashed_password=hashed_pwd, username=username)
@@ -439,7 +439,8 @@ async def timer_page(request: Request, current_user: models.User = Depends(get_c
 async def offline_page(request: Request):
     return templates.TemplateResponse(
         request=request,
-        name="offline.html"
+        name="offline.html",
+        context={"user": None}
     )
 
 @app.get("/settings", response_class=HTMLResponse)
