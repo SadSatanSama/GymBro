@@ -255,8 +255,22 @@
         window.dispatchEvent(new Event('languageChanged'));
     }
 
-    function toggleForcedOffline(checkbox) {
+    async function toggleForcedOffline(checkbox) {
         localStorage.setItem('isForcedOffline', checkbox.checked);
+        
+        // --- Service Worker Synchronization ---
+        // We use Cache Storage to pass the offline flag to the SW (since SW can't read localStorage)
+        try {
+            const flagCache = await caches.open('gymbro-flags');
+            if (checkbox.checked) {
+                await flagCache.put('/offline-mode-active', new Response('true'));
+            } else {
+                await flagCache.delete('/offline-mode-active');
+            }
+        } catch (e) {
+            console.error("SW Flag Sync Failed:", e);
+        }
+
         // Trigger storage event manually for same-tab header update
         window.dispatchEvent(new Event('storage'));
         showToast(checkbox.checked ? "📴 Offline Mode Enabled" : "🌐 Online Mode Enabled");

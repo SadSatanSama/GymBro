@@ -44,15 +44,24 @@ self.addEventListener('fetch', event => {
   // Strategy for Navigation (HTML Pages)
   if (event.request.mode === 'navigate') {
     event.respondWith(
-      fetch(event.request)
-        .then(networkResponse => {
-          return caches.open(CACHE_NAME).then(cache => {
-            cache.put(event.request, networkResponse.clone());
-            return networkResponse;
-          });
-        })
-        .catch(() => {
-          return caches.match(event.request) || caches.match('/offline');
+      caches.open('gymbro-flags').then(flagCache => flagCache.match('/offline-mode-active'))
+        .then(isForcedOffline => {
+          // If "Always Offline" is enabled in settings, bypass network immediately
+          if (isForcedOffline) {
+            return caches.match(event.request) || caches.match('/offline');
+          }
+          
+          // Normal Network-First strategy
+          return fetch(event.request)
+            .then(networkResponse => {
+              return caches.open(CACHE_NAME).then(cache => {
+                cache.put(event.request, networkResponse.clone());
+                return networkResponse;
+              });
+            })
+            .catch(() => {
+              return caches.match(event.request) || caches.match('/offline');
+            });
         })
     );
     return;
