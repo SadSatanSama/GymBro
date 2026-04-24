@@ -448,7 +448,7 @@ async def settings_page(request: Request, current_user: models.User = Depends(ge
     return templates.TemplateResponse(
         request=request,
         name="settings.html",
-        context={"user": current_user}
+        context={"user": current_user, "is_settings": True}
     )
 
 import csv
@@ -466,6 +466,8 @@ async def export_workouts(db: Session = Depends(get_db), current_user: models.Us
     workouts = db.query(models.Workout).filter(models.Workout.user_id == current_user.id).all()
     for w in workouts:
         for s in w.sets:
+            if not s.exercise:  # Skip orphaned sets with no exercise reference
+                continue
             writer.writerow([
                 w.date.isoformat(),
                 w.category or "",

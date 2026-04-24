@@ -19,10 +19,16 @@
     
     <!-- Global Logic -->
     <script>
+        // --- Global Connectivity Helper ---
+        function isAppOnline() {
+            const forcedOffline = localStorage.getItem('isForcedOffline') === 'true';
+            return navigator.onLine && !forcedOffline;
+        }
+
         // --- Unified Sync Queue System ---
         const syncQueue = {
             async sync() {
-                if (!navigator.onLine) return;
+                if (!isAppOnline()) return;
                 const pending = JSON.parse(localStorage.getItem('syncQueue') || '[]');
                 if (pending.length === 0) return;
 
@@ -44,7 +50,7 @@
                 
                 localStorage.setItem('syncQueue', JSON.stringify(remaining));
                 if (remaining.length === 0) {
-                    this.showToast('✅ Cloud Sync Complete!');
+                    showToast('✅ Cloud Sync Complete!');
                     // Refresh if on dashboard or history to show new data
                     if (window.location.pathname === '/' || window.location.pathname === '/history') {
                         setTimeout(() => window.location.reload(), 1000);
@@ -56,15 +62,7 @@
                 const pending = JSON.parse(localStorage.getItem('syncQueue') || '[]');
                 pending.push({ url, data, timestamp: new Date().toISOString() });
                 localStorage.setItem('syncQueue', JSON.stringify(pending));
-                this.showToast('📶 Saved Locally (Offline)');
-            },
-
-            showToast(msg) {
-                const toast = document.createElement('div');
-                toast.className = 'sync-toast';
-                toast.innerText = msg;
-                document.body.appendChild(toast);
-                setTimeout(() => toast.remove(), 3000);
+                showToast('📶 Saved Locally (Offline)');
             }
         };
 
@@ -108,6 +106,10 @@
             document.querySelectorAll('.nav-ask').forEach(el => el.innerText = dict.nav_ask);
             
             const path = window.location.pathname;
+
+            // Don't override headings on auth pages — Jinja2 handles those
+            if (path === '/login' || path === '/register') return;
+
             let key = "dashboard";
             if (path.includes('log')) key = "log";
             else if (path.includes('history')) key = "history";
@@ -122,7 +124,21 @@
 
         window.addEventListener('languageChanged', translatePage);
         window.addEventListener('DOMContentLoaded', translatePage);
-        document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') || 'dark');
+        // --- Global Toast Notification System ---
+        function showToast(message, type = 'success') {
+            const existing = document.getElementById('gymToast');
+            if (existing) existing.remove();
+            const toast = document.createElement('div');
+            toast.id = 'gymToast';
+            const bg = type === 'error' ? 'rgba(255,68,68,0.15)' : 'rgba(78,205,196,0.15)';
+            const border = type === 'error' ? 'rgba(255,68,68,0.4)' : 'rgba(78,205,196,0.4)';
+            const color = type === 'error' ? '#ff6b6b' : '#4ECDC4';
+            toast.style.cssText = `position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:${bg};border:1px solid ${border};color:${color};padding:0.65rem 1.4rem;border-radius:999px;font-size:0.9rem;font-weight:600;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);z-index:9999;white-space:nowrap;box-shadow:0 4px 24px rgba(0,0,0,0.3);opacity:0;transition:opacity 0.25s ease,transform 0.25s ease;pointer-events:none;`;
+            toast.innerText = message;
+            document.body.appendChild(toast);
+            requestAnimationFrame(() => { toast.style.opacity = '1'; toast.style.transform = 'translateX(-50%) translateY(0)'; });
+            setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(-50%) translateY(10px)'; setTimeout(() => toast.remove(), 300); }, 1500);
+        }
     </script>
 </head>
 
@@ -162,9 +178,17 @@
             <header>
                 {% if user %}
                 <div style="position: absolute; left: 0; top: 0; display: flex; gap: 0.75rem;">
-                    <a href="/settings" class="glass" style="padding: 0.5rem; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; color: var(--text-main); text-decoration: none;">
+                    {% if is_settings %}
+                    <!-- On settings page: show a Close (X) button to go back -->
+                    <button onclick="history.back()" class="glass" title="Close Settings" style="padding: 0.5rem; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; color: var(--accent-red); background: none; border: none;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                    {% else %}
+                    <!-- On other pages: show the settings gear icon -->
+                    <a href="/settings" class="glass" title="Settings" style="padding: 0.5rem; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; color: var(--text-main); text-decoration: none;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
                     </a>
+                    {% endif %}
                     <a href="/logout" class="glass" title="Logout" style="padding: 0.5rem; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; color: var(--accent-red); text-decoration: none;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
                     </a>
@@ -175,6 +199,21 @@
                     <h1>{% if user %}Hello, {{ user.username }}!{% else %}{% block header %}GymBro{% endblock %}{% endif %}</h1>
                     <p>{% if user %}Let's smash some PRs today.{% else %}{% block subheader %}Your ultimate fitness companion.{% endblock %}{% endif %}</p>
                 </div>
+
+                <div id="offlineIcon" title="Always Offline Enabled" style="display: none; position: absolute; right: 50px; top: 0; width: 40px; height: 40px; align-items: center; justify-content: center; color: #ff4444;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.58 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+                </div>
+
+                <script>
+                    function checkOfflineStatus() {
+                        const icon = document.getElementById('offlineIcon');
+                        if (icon) {
+                            icon.style.display = localStorage.getItem('isForcedOffline') === 'true' ? 'flex' : 'none';
+                        }
+                    }
+                    window.addEventListener('DOMContentLoaded', checkOfflineStatus);
+                    window.addEventListener('storage', checkOfflineStatus);
+                </script>
                 <button id="themeToggleBtn" onclick="toggleTheme()" class="glass" style="position: absolute; right: 0; top: 0; padding: 0.5rem; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; color: var(--text-main);">
                 </button>
             </header>

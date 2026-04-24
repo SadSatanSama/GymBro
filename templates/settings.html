@@ -103,6 +103,31 @@
         </div>
     </div>
 
+    <!-- System Connectivity -->
+    <div class="settings-section">
+        <button class="accordion-header" onclick="toggleAccordion(this)">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+                <span style="font-weight: 600; font-size: 1.1rem;">System Connectivity</span>
+            </div>
+            <svg class="chevron" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="accordion-content">
+            <div style="padding: 1rem 1.5rem 2rem 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <p style="margin: 0; font-weight: 600;">Always Offline</p>
+                        <p style="margin: 0; font-size: 0.8rem; color: var(--text-muted);">Force the app to stay offline even with internet.</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="offlineToggle" onchange="toggleForcedOffline(this)">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Contact & Support -->
     <div class="settings-section">
         <button class="accordion-header" onclick="toggleAccordion(this)">
@@ -186,6 +211,16 @@
         opacity: 1;
         color: var(--accent-orange);
     }
+
+    /* Switch Styles */
+    .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--glass-bg); transition: .4s; border: 1px solid var(--glass-border); }
+    .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: var(--text-muted); transition: .4s; }
+    input:checked + .slider { background-color: rgba(78, 205, 196, 0.2); border-color: #4ECDC4; }
+    input:checked + .slider:before { transform: translateX(20px); background-color: #4ECDC4; }
+    .slider.round { border-radius: 24px; }
+    .slider.round:before { border-radius: 50%; }
 </style>
 
 <script>
@@ -218,6 +253,13 @@
         updateUI();
         // Trigger a custom event so other parts of the app can react
         window.dispatchEvent(new Event('languageChanged'));
+    }
+
+    function toggleForcedOffline(checkbox) {
+        localStorage.setItem('isForcedOffline', checkbox.checked);
+        // Trigger storage event manually for same-tab header update
+        window.dispatchEvent(new Event('storage'));
+        showToast(checkbox.checked ? "📴 Offline Mode Enabled" : "🌐 Online Mode Enabled");
     }
 
     async function importData(input) {
@@ -267,6 +309,9 @@
 
         const langBtn = document.getElementById('lang' + lang.charAt(0).toUpperCase() + lang.slice(1));
         if (langBtn) langBtn.classList.add('active');
+
+        const isForcedOffline = localStorage.getItem('isForcedOffline') === 'true';
+        document.getElementById('offlineToggle').checked = isForcedOffline;
     }
 
     function saveApiKey() {

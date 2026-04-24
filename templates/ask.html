@@ -156,6 +156,11 @@
         const text = document.getElementById('userInput').value.trim();
         if (!text || !userApiKey) return;
 
+        if (!isAppOnline()) {
+            showToast("🌐 AI Coach requires Internet access", "error");
+            return;
+        }
+
         document.getElementById('userInput').value = '';
         document.getElementById('userInput').style.height = 'auto';
         sendBtn.disabled = true;

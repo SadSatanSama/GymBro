@@ -217,15 +217,16 @@
         const submitBtn = document.getElementById("addSetBtn");
 
         if (!data.exercise_name) {
-            alert("Please select an exercise!");
+            showToast("⚠️ Please select an exercise!", "error");
             return;
         }
 
         submitBtn.disabled = true;
         submitBtn.innerText = "Saving...";
 
-        if (!navigator.onLine) {
+        if (!isAppOnline()) {
             syncQueue.saveLocally('/log', data);
+            showToast("📡 Offline: Set saved locally!");
             postSubmitCleanup();
             return;
         }
@@ -237,14 +238,15 @@
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
             });
             if (response.ok) {
+                showToast(`✅ Set ${currentSet} logged!`);
                 postSubmitCleanup();
-                syncQueue.showToast('✅ Set logged successfully!');
             } else {
                 throw new Error("Server error");
             }
         } catch (error) {
             console.error("Sync failed, saving locally:", error);
             syncQueue.saveLocally('/log', data);
+            showToast("📡 Sync failed: Saved locally!");
             postSubmitCleanup();
         }
     }
@@ -262,19 +264,26 @@
 
     async function finishWorkout() {
         const form = document.getElementById("workoutForm");
-        if (document.getElementById("weight").value || document.getElementById("reps").value) {
+        const weight = document.getElementById("weight").value;
+        const reps = document.getElementById("reps").value;
+        
+        if (weight || reps) {
             if (form.checkValidity()) {
                 const formData = new FormData(form);
                 const data = Object.fromEntries(formData.entries());
-                if (navigator.onLine) {
+                if (isAppOnline()) {
                     await fetch("/log", { method: "POST", body: new URLSearchParams(data), headers: { 'Content-Type': 'application/x-www-form-urlencoded' } });
                 } else {
                     syncQueue.saveLocally('/log', data);
                 }
             }
         }
+        
+        showToast("🏆 Workout Finished! Great job.");
         sessionStorage.clear();
-        window.location.href = '/history';
+        setTimeout(() => {
+            window.location.href = '/history';
+        }, 1200);
     }
 
     // --- Search ---

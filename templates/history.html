@@ -9,7 +9,7 @@
 {% block content %}
 <div class="history-controls" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
     <div style="display: flex; align-items: center; gap: 0.5rem;">
-        <input type="date" id="dateFilter" class="form-control" style="max-width: 160px; height: 38px;">
+        <input type="date" id="dateFilter" class="form-control" style="max-width: 160px; height: 38px; color: var(--text-main); color-scheme: dark; -webkit-text-fill-color: var(--text-main);">
         <button id="clearDateBtn" onclick="clearDateFilter()" class="glass-btn" style="display: none; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; font-weight: 600; height: 38px;">Clear</button>
     </div>
     
@@ -165,56 +165,51 @@
         try {
             const formData = new FormData();
             formData.append('category', newCat);
-            
-            const response = await fetch(`/workout/${id}/category`, {
-                method: 'POST',
-                body: formData
-            });
+            const response = await fetch(`/workout/${id}/category`, { method: 'POST', body: formData });
             const result = await response.json();
-
             if (response.ok) {
                 if (result.status === 'merged') {
-                    // Refresh the page to show the merged result
-                    window.location.reload();
+                    showToast('✅ Merged into existing category!', 'success');
+                    setTimeout(() => window.location.reload(), 1000);
                 } else {
                     oldTag.innerText = newCat;
                     container.querySelector('select').remove();
-                    container.querySelector('div').remove(); // remove action group
+                    container.querySelector('div').remove();
                     oldTag.style.display = 'inline';
                     editBtn.style.display = 'flex';
+                    showToast('✅ Category updated!', 'success');
                 }
             } else {
-                alert("Failed to save category.");
+                showToast('❌ Failed to save category.', 'error');
             }
         } catch (err) {
-            console.error("Save category failed:", err);
+            console.error('Save category failed:', err);
+            showToast('❌ Network error. Try again.', 'error');
         }
     }
 
     async function deleteWorkout(btn) {
         const id = btn.getAttribute('data-workout-id');
-        if (!confirm("Are you sure you want to permanently delete this entire workout?")) return;
-        
+        if (!confirm('Delete this entire workout permanently?')) return;
         try {
             const response = await fetch(`/workout/${id}`, { method: 'DELETE' });
             if (response.ok) {
                 btn.closest('.workout-card').remove();
-                if (document.querySelectorAll('.workout-card').length === 0) window.location.reload();
+                showToast('🗑️ Workout deleted.', 'success');
+                if (document.querySelectorAll('.workout-card').length === 0) setTimeout(() => window.location.reload(), 1200);
             } else {
-                alert("Could not delete workout. Server error.");
+                showToast('❌ Could not delete workout.', 'error');
             }
         } catch (err) {
-            console.error("Delete failed:", err);
-            alert("Network error. Check your connection.");
+            console.error('Delete failed:', err);
+            showToast('❌ Network error. Check connection.', 'error');
         }
     }
 
     async function deleteExercise(btn) {
         const workoutId = btn.getAttribute('data-workout-id');
         const exerciseName = btn.getAttribute('data-exercise-name');
-
         if (!confirm(`Remove ${exerciseName} from this workout?`)) return;
-        
         try {
             const url = `/workout/${workoutId}/exercise/${encodeURIComponent(exerciseName)}`;
             const response = await fetch(url, { method: 'DELETE' });
@@ -222,33 +217,37 @@
                 const group = btn.closest('.exercise-group');
                 const card = group.closest('.workout-card');
                 group.remove();
+                showToast(`🗑️ ${exerciseName} removed.`, 'success');
                 if (card.querySelectorAll('.exercise-group').length === 0) card.remove();
             } else {
-                alert("Could not delete exercise.");
+                showToast('❌ Could not delete exercise.', 'error');
             }
         } catch (err) {
-            console.error("Delete exercise failed:", err);
-            alert("Network error.");
+            console.error('Delete exercise failed:', err);
+            showToast('❌ Network error.', 'error');
         }
     }
 
     async function deleteSet(btn) {
         const row = btn.closest('.set-row');
         const id = row.getAttribute('data-set-id');
-        if (!confirm("Delete this individual set?")) return;
-        
+        if (!confirm('Delete this set?')) return;
         try {
             const response = await fetch(`/set/${id}`, { method: 'DELETE' });
             const result = await response.json();
             if (response.ok) {
+                showToast('🗑️ Set deleted.', 'success');
                 if (result.workout_deleted) {
                     row.closest('.workout-card').remove();
                 } else {
                     row.remove();
                 }
+            } else {
+                showToast('❌ Could not delete set.', 'error');
             }
         } catch (err) {
-            console.error("Delete set failed:", err);
+            console.error('Delete set failed:', err);
+            showToast('❌ Network error.', 'error');
         }
     }
 
@@ -283,19 +282,20 @@
         const inputs = row.querySelectorAll('input');
         const w = inputs[0].value;
         const r = inputs[1].value;
-
         try {
             const formData = new FormData();
             formData.append('weight', w);
             formData.append('reps', r);
-            
-            const response = await fetch(`/set/${id}/edit`, {
-                method: 'POST',
-                body: formData
-            });
-            if (response.ok) window.location.reload();
+            const response = await fetch(`/set/${id}/edit`, { method: 'POST', body: formData });
+            if (response.ok) {
+                showToast('✅ Set updated!', 'success');
+                setTimeout(() => window.location.reload(), 800);
+            } else {
+                showToast('❌ Failed to save set.', 'error');
+            }
         } catch (err) {
-            console.error("Save set failed:", err);
+            console.error('Save set failed:', err);
+            showToast('❌ Network error.', 'error');
         }
     }
 
