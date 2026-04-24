@@ -98,10 +98,10 @@ async def login_page(request: Request):
     return templates.TemplateResponse("login.html", {"request": request, "user": None})
 
 @app.post("/login")
-async def login(email: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
+async def login(request: Request, email: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.email == email).first()
     if not user or not verify_password(password, user.hashed_password):
-        return templates.TemplateResponse("login.html", {"request": {}, "error": "Invalid email or password", "user": None})
+        return templates.TemplateResponse("login.html", {"request": request, "error": "Invalid email or password", "user": None})
     
     token = create_access_token(data={"sub": email})
     response = RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
@@ -113,10 +113,10 @@ async def register_page(request: Request):
     return templates.TemplateResponse("register.html", {"request": request, "user": None})
 
 @app.post("/register")
-async def register(username: str = Form(...), email: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
+async def register(request: Request, username: str = Form(...), email: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
     existing_user = db.query(models.User).filter(models.User.email == email).first()
     if existing_user:
-        return templates.TemplateResponse("register.html", {"request": {}, "error": "Email already registered", "user": None})
+        return templates.TemplateResponse("register.html", {"request": request, "error": "Email already registered", "user": None})
     
     hashed_pwd = get_password_hash(password)
     new_user = models.User(email=email, hashed_password=hashed_pwd, username=username)
@@ -125,12 +125,15 @@ async def register(username: str = Form(...), email: str = Form(...), password: 
     db.refresh(new_user)
 
     # --- Data Migration ---
-    # If this is the first user, or if there are orphan workouts, assign them to this user
-    orphan_workouts = db.query(models.Workout).filter(models.Workout.user_id == None).all()
-    if orphan_workouts:
-        for w in orphan_workouts:
-            w.user_id = new_user.id
-        db.commit()
+    try:
+        orphan_workouts = db.query(models.Workout).filter(models.Workout.user_id == None).all()
+        if orphan_workouts:
+            for w in orphan_workouts:
+                w.user_id = new_user.id
+            db.commit()
+    except Exception as e:
+        print(f"Migration error: {e}")
+        db.rollback()
 
     token = create_access_token(data={"sub": email})
     response = RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
@@ -163,24 +166,28 @@ async def dashboard(
     total_cardio_dist = sum(s.weight for s in sets_query.filter(models.Workout.category.in_(["Cardio", "HIIT"])).all() if s.weight)
     
     today = date.today()
-    s_date = today - timedelta(days=6)
     e_date = today
     
-    if request.query_params.get("all_time"):
-        first_workout = db.query(models.Workout).filter(models.Workout.user_id == current_user.id).order_by(models.Workout.date.asc()).first()
-        if first_workout:
-            s_date = first_workout.date
+    # Set default start date to the user's first ever workout
+    # If no workouts exist, default to today
+    first_workout = db.query(models.Workout).filter(models.Workout.user_id == current_user.id).order_by(models.Workout.date.asc()).first()
+    
+    if first_workout:
+        s_date = first_workout.date
     else:
-        if start_date:
-            try:
-                s_date = datetime.strptime(start_date, "%Y-%m-%d").date()
-            except ValueError:
-                pass
-        if end_date:
-            try:
-                e_date = datetime.strptime(end_date, "%Y-%m-%d").date()
-            except ValueError:
-                pass
+        s_date = today
+
+    # Override with manual filters if provided
+    if start_date:
+        try:
+            s_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+        except ValueError:
+            pass
+    if end_date:
+        try:
+            e_date = datetime.strptime(end_date, "%Y-%m-%d").date()
+        except ValueError:
+            pass
             
     if e_date < s_date:
         e_date = s_date
