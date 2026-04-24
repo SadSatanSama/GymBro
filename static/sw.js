@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gymbro-v5';
+const CACHE_NAME = 'gymbro-v6';
 const ASSETS = [
   '/',
   '/log',
@@ -8,7 +8,6 @@ const ASSETS = [
   '/timer',
   '/offline',
   '/static/index.css',
-  '/static/logo.png',
   '/static/manifest.json',
   'https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap',
   'https://cdn.jsdelivr.net/npm/chart.js'
@@ -34,13 +33,32 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
-// Fetch: "Stale-While-Revalidate" Strategy
-// 1. Show cached content immediately for speed
-// 2. Fetch from network in background to update cache
-// 3. If network fails and no cache, show /offline page
+// Fetch: Smart Strategy
+// - Navigation (Pages): Network-First (Show latest data if online)
+// - Assets (CSS/JS): Stale-While-Revalidate (Load fast, update background)
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
 
+  const url = new URL(event.request.url);
+
+  // Strategy for Navigation (HTML Pages)
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then(networkResponse => {
+          return caches.open(CACHE_NAME).then(cache => {
+            cache.put(event.request, networkResponse.clone());
+            return networkResponse;
+          });
+        })
+        .catch(() => {
+          return caches.match(event.request) || caches.match('/offline');
+        })
+    );
+    return;
+  }
+
+  // Strategy for Assets (CSS, JS, Fonts)
   event.respondWith(
     caches.open(CACHE_NAME).then(cache => {
       return cache.match(event.request).then(cachedResponse => {
@@ -48,33 +66,10 @@ self.addEventListener('fetch', event => {
           cache.put(event.request, networkResponse.clone());
           return networkResponse;
         }).catch(() => {
-            // If network fails and we have no cache, return the offline page
-            if (!cachedResponse && event.request.mode === 'navigate') {
-                return cache.match('/offline');
-            }
+           // Silent fail for non-critical assets
         });
-
         return cachedResponse || fetchedResponse;
       });
-    })
-  );
-});
-
-// Background Sync
-self.addEventListener('sync', event => {
-  if (event.tag === 'sync-workouts') {
-    console.log('Syncing data in background...');
-  }
-});
-
-// Push
-self.addEventListener('push', event => {
-  const data = event.data ? event.data.text() : 'GymBro: Update!';
-  event.waitUntil(
-    self.registration.showNotification('GymBro', {
-      body: data,
-      icon: '/static/logo.png',
-      badge: '/static/logo.png'
     })
   );
 });

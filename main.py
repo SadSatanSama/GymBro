@@ -126,7 +126,7 @@ async def dashboard(
             max_w = max((s.weight for s in day_sets if s.weight), default=0)
             max_r = max((s.reps for s in day_sets if s.reps), default=0)
             # Max duration for the day if it's cardio
-            cardio_durations = [s.reps for s in day_sets if s.reps and s.workout.category == "Cardio"]
+            cardio_durations = [s.reps for s in day_sets if s.reps and s.workout and s.workout.category and s.workout.category in ["Cardio", "HIIT"]]
             max_c = max(cardio_durations, default=0)
         else:
             max_w = 0
@@ -252,10 +252,10 @@ async def workout_history(request: Request, db: Session = Depends(get_db)):
                 exercises_summary[ex_name] = {"max_weight": 0, "max_reps": 0, "all_sets": []}
             
             exercises_summary[ex_name]["all_sets"].append({
+                "id": s.id,
                 "weight": s.weight,
                 "reps": s.reps
             })
-            
             if s.weight and s.weight > exercises_summary[ex_name]["max_weight"]:
                 exercises_summary[ex_name]["max_weight"] = s.weight
             if s.reps and s.reps > exercises_summary[ex_name]["max_reps"]:
@@ -276,6 +276,36 @@ async def workout_history(request: Request, db: Session = Depends(get_db)):
         name="history.html",
         context={"history_data": history_data}
     )
+
+@app.delete("/set/{set_id}")
+async def delete_set(set_id: int, db: Session = Depends(get_db)):
+    set_to_delete = db.query(models.Set).filter(models.Set.id == set_id).first()
+    if set_to_delete:
+        workout_id = set_to_delete.workout_id
+        db.delete(set_to_delete)
+        db.commit()
+        
+        # Cleanup: If no sets left in workout, delete workout
+        remaining = db.query(models.Set).filter(models.Set.workout_id == workout_id).count()
+        if remaining == 0:
+            workout = db.query(models.Workout).filter(models.Workout.id == workout_id).first()
+            if workout:
+                db.delete(workout)
+                db.commit()
+                return {"status": "success", "workout_deleted": True}
+        
+        return {"status": "success", "workout_deleted": False}
+    return {"status": "error", "message": "Set not found"}, 404
+
+@app.post("/set/{set_id}/edit")
+async def edit_set(set_id: int, weight: float = Form(...), reps: int = Form(...), db: Session = Depends(get_db)):
+    target_set = db.query(models.Set).filter(models.Set.id == set_id).first()
+    if target_set:
+        target_set.weight = weight
+        target_set.reps = reps
+        db.commit()
+        return {"status": "success"}
+    return {"status": "error", "message": "Set not found"}, 404
 
 @app.post("/history/delete_exercise/{exercise_id}")
 async def delete_exercise(exercise_id: int, db: Session = Depends(get_db)):
@@ -456,8 +486,33 @@ async def delete_workout_exercise(workout_id: int, exercise_name: str, db: Sessi
 @app.post("/workout/{workout_id}/category")
 async def update_workout_category(workout_id: int, category: str = Form(...), db: Session = Depends(get_db)):
     workout = db.query(models.Workout).filter(models.Workout.id == workout_id).first()
-    if workout:
+    if not workout:
+        return {"status": "error", "message": "Workout not found"}, 404
+
+    # Check if a workout with the target category already exists ON THE SAME DAY
+    existing_workout = db.query(models.Workout).filter(
+        models.Workout.date == workout.date,
+        models.Workout.category == category,
+        models.Workout.id != workout_id
+    ).first()
+
+    if existing_workout:
+        # Move all sets from current workout to the existing one
+        for s in workout.sets:
+            s.workout_id = existing_workout.id
+        
+        # Merge notes if they exist
+        if workout.notes:
+            if existing_workout.notes:
+                existing_workout.notes += f" | {workout.notes}"
+            else:
+                existing_workout.notes = workout.notes
+        
+        db.delete(workout)
+        db.commit()
+        return {"status": "merged", "new_id": existing_workout.id}
+    else:
+        # Just update the category
         workout.category = category
         db.commit()
         return {"status": "success"}
-    return {"status": "error", "message": "Workout not found"}, 404

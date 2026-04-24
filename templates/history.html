@@ -110,6 +110,87 @@
         btn.style.transform = isHidden ? 'rotate(90deg)' : 'rotate(0deg)';
     }
 
+    function editCategory(btn) {
+        const id = btn.getAttribute('data-workout-id');
+        const container = btn.parentElement;
+        const currentTag = container.querySelector('.workout-category-tag');
+        const currentVal = currentTag.innerText.trim();
+
+        // Hide the current tag and edit button
+        currentTag.style.display = 'none';
+        btn.style.display = 'none';
+
+        // Create a select dropdown
+        const select = document.createElement('select');
+        select.className = 'form-control';
+        select.style.cssText = "font-size: 0.8rem; padding: 2px 6px; height: 28px; width: auto; min-width: 120px;";
+        
+        const categories = ["Push Day", "Pull Day", "Leg Day", "Upper Body", "Lower Body", "Full Body", "Core & Abs", "Cardio", "HIIT"];
+        categories.forEach(cat => {
+            const opt = document.createElement('option');
+            opt.value = cat;
+            opt.innerText = cat;
+            if (cat === currentVal) opt.selected = true;
+            select.appendChild(opt);
+        });
+
+        // Create Save/Cancel buttons
+        const actionGroup = document.createElement('div');
+        actionGroup.style.cssText = "display: flex; gap: 4px; margin-top: 4px;";
+        
+        const saveBtn = document.createElement('button');
+        saveBtn.innerText = "Save";
+        saveBtn.className = "btn-primary";
+        saveBtn.style.cssText = "padding: 2px 8px; font-size: 0.75rem; border-radius: 4px;";
+        saveBtn.onclick = () => saveCategory(id, select.value, container, currentTag, btn);
+
+        const cancelBtn = document.createElement('button');
+        cancelBtn.innerText = "✕";
+        cancelBtn.className = "glass-btn";
+        cancelBtn.style.cssText = "padding: 2px 8px; font-size: 0.75rem; border-radius: 4px;";
+        cancelBtn.onclick = () => {
+            select.remove();
+            actionGroup.remove();
+            currentTag.style.display = 'inline';
+            btn.style.display = 'flex';
+        };
+
+        actionGroup.appendChild(saveBtn);
+        actionGroup.appendChild(cancelBtn);
+        container.appendChild(select);
+        container.appendChild(actionGroup);
+    }
+
+    async function saveCategory(id, newCat, container, oldTag, editBtn) {
+        try {
+            const formData = new FormData();
+            formData.append('category', newCat);
+            
+            const response = await fetch(`/workout/${id}/category`, {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+
+            if (response.ok) {
+                if (result.status === 'merged') {
+                    // Refresh the page to show the merged result
+                    window.location.reload();
+                } else {
+                    oldTag.innerText = newCat;
+                    container.querySelector('select').remove();
+                    container.querySelector('div').remove(); // remove action group
+                    oldTag.style.display = 'inline';
+                    editBtn.style.display = 'flex';
+                }
+            } else {
+                alert("Failed to save category.");
+            }
+        } catch (err) {
+            console.error("Save category failed:", err);
+        }
+    }
+
     async function deleteWorkout(btn) {
         const id = btn.getAttribute('data-workout-id');
         if (!confirm("Are you sure you want to permanently delete this entire workout?")) return;
@@ -148,6 +229,73 @@
         } catch (err) {
             console.error("Delete exercise failed:", err);
             alert("Network error.");
+        }
+    }
+
+    async function deleteSet(btn) {
+        const row = btn.closest('.set-row');
+        const id = row.getAttribute('data-set-id');
+        if (!confirm("Delete this individual set?")) return;
+        
+        try {
+            const response = await fetch(`/set/${id}`, { method: 'DELETE' });
+            const result = await response.json();
+            if (response.ok) {
+                if (result.workout_deleted) {
+                    row.closest('.workout-card').remove();
+                } else {
+                    row.remove();
+                }
+            }
+        } catch (err) {
+            console.error("Delete set failed:", err);
+        }
+    }
+
+    function startEditSet(btn) {
+        const row = btn.closest('.set-row');
+        const id = row.getAttribute('data-set-id');
+        const dataText = row.querySelector('.set-data-text');
+        
+        // Parse current weight/reps
+        const matches = dataText.innerText.match(/(\d+\.?\d*).+?(\d+)/);
+        if (!matches) return;
+        
+        const oldW = matches[1];
+        const oldR = matches[2];
+
+        // Replace row content with inputs
+        dataText.innerHTML = `
+            <input type="number" step="0.1" value="${oldW}" class="form-control" style="width: 55px; height: 24px; padding: 2px; font-size: 0.75rem;">
+            ×
+            <input type="number" value="${oldR}" class="form-control" style="width: 45px; height: 24px; padding: 2px; font-size: 0.75rem;">
+        `;
+        
+        const actions = btn.parentElement;
+        actions.innerHTML = `
+            <button onclick="saveSet('${id}', this)" style="background:none; border:none; color:var(--accent-orange); cursor:pointer; font-weight:700; font-size:0.7rem;">SAVE</button>
+            <button onclick="window.location.reload()" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:0.7rem;">✕</button>
+        `;
+    }
+
+    async function saveSet(id, btn) {
+        const row = btn.closest('.set-row');
+        const inputs = row.querySelectorAll('input');
+        const w = inputs[0].value;
+        const r = inputs[1].value;
+
+        try {
+            const formData = new FormData();
+            formData.append('weight', w);
+            formData.append('reps', r);
+            
+            const response = await fetch(`/set/${id}/edit`, {
+                method: 'POST',
+                body: formData
+            });
+            if (response.ok) window.location.reload();
+        } catch (err) {
+            console.error("Save set failed:", err);
         }
     }
 
