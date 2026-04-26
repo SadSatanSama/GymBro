@@ -96,6 +96,7 @@
     // --- Core Logic ---
     async function fetchExercises() {
         const cachedExercises = localStorage.getItem('gymbro_exercise_db');
+        console.log("Log: Initializing exercise fetch...");
         
         // If offline, try to load from cache immediately
         if (!isAppOnline()) {
@@ -103,24 +104,61 @@
                 console.log("Log: Loading exercises from local cache...");
                 processExerciseData(JSON.parse(cachedExercises));
             } else {
-                showToast("⚠️ Connect once to download exercise list for offline use.", "error");
+                console.warn("Log: App offline and no cache found. Using minimal fallback.");
+                loadFallbackExercises();
             }
             return;
         }
 
         try {
+            console.log("Log: Fetching exercise database...");
             const response = await fetch("https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json");
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            
             const data = await response.json();
+            console.log("Log: Database loaded successfully, count:", data.length);
             
             // Save to cache for future offline use
             localStorage.setItem('gymbro_exercise_db', JSON.stringify(data));
             processExerciseData(data);
         } catch (error) {
-            console.error("Failed to load exercises, trying cache:", error);
+            console.error("Log: Failed to load external exercises:", error);
             if (cachedExercises) {
+                console.log("Log: Reverting to local cache...");
                 processExerciseData(JSON.parse(cachedExercises));
+            } else {
+                console.log("Log: No cache available. Loading extensive fallback list.");
+                loadFallbackExercises();
             }
         }
+    }
+
+    function loadFallbackExercises() {
+        const fallback = [
+            { name: "Bench Press (Barbell)", equipment: "Chest" },
+            { name: "Incline Bench Press (Barbell)", equipment: "Chest" },
+            { name: "Dumbbell Flyes", equipment: "Chest" },
+            { name: "Push Ups", equipment: "Chest" },
+            { name: "Deadlift (Barbell)", equipment: "Back" },
+            { name: "Pull Ups", equipment: "Back" },
+            { name: "Lat Pulldown (Cable)", equipment: "Back" },
+            { name: "Bent Over Row (Barbell)", equipment: "Back" },
+            { name: "Squat (Barbell)", equipment: "Legs" },
+            { name: "Leg Press", equipment: "Legs" },
+            { name: "Leg Extension", equipment: "Legs" },
+            { name: "Leg Curl", equipment: "Legs" },
+            { name: "Overhead Press (Barbell)", equipment: "Shoulders" },
+            { name: "Lateral Raise (Dumbbell)", equipment: "Shoulders" },
+            { name: "Front Raise (Dumbbell)", equipment: "Shoulders" },
+            { name: "Bicep Curl (Barbell)", equipment: "Arms" },
+            { name: "Hammer Curl (Dumbbell)", equipment: "Arms" },
+            { name: "Tricep Pushdown (Cable)", equipment: "Arms" },
+            { name: "Skull Crushers", equipment: "Arms" },
+            { name: "Plank", equipment: "Core" },
+            { name: "Crunches", equipment: "Core" },
+            { name: "Leg Raises", equipment: "Core" }
+        ];
+        processExerciseData(fallback);
     }
 
     function processExerciseData(data) {
