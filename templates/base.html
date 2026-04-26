@@ -17,6 +17,18 @@
             navigator.serviceWorker.register('/sw.js', { scope: '/' });
         }
         
+        function isAppOnline() {
+            return navigator.onLine && localStorage.getItem('isForcedOffline') !== 'true';
+        }
+
+        const syncQueue = {
+            saveLocally: (endpoint, data) => {
+                const queue = JSON.parse(localStorage.getItem('syncQueue') || '[]');
+                queue.push({ endpoint, data, timestamp: Date.now() });
+                localStorage.setItem('syncQueue', JSON.stringify(queue));
+            }
+        };
+
         function showToast(message, type = 'success') {
             const existing = document.getElementById('gymToast');
             if (existing) existing.remove();
