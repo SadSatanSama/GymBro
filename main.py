@@ -41,8 +41,10 @@ init_db()
 app = FastAPI(title="Gym Progress Tracker")
 
 # Mount Static Files and Templates
+import json
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
+templates.env.filters["tojson"] = lambda x: json.dumps(x)
 
 # Helper functions for Auth
 def get_password_hash(password: str) -> str:
