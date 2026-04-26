@@ -7,13 +7,13 @@
 {% block subheader %}Review your past sessions.{% endblock %}
 
 {% block content %}
-<div class="history-controls" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+<div class="history-controls">
     <div style="display: flex; align-items: center; gap: 0.5rem;">
         <input type="date" id="dateFilter" class="form-control" style="max-width: 160px; height: 38px; color: var(--text-main); color-scheme: dark; -webkit-text-fill-color: var(--text-main);">
         <button id="clearDateBtn" onclick="clearDateFilter()" class="glass-btn" style="display: none; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; font-weight: 600; height: 38px;">Clear</button>
     </div>
     
-    <div class="toggle-group" style="display: flex; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 8px; overflow: hidden;">
+    <div class="toggle-group">
         <button id="btnWeight" class="toggle-btn active" onclick="setMode('weight')">Weight</button>
         <button id="btnReps" class="toggle-btn" onclick="setMode('reps')">Reps</button>
         <button id="btnCardio" class="toggle-btn" onclick="setMode('cardio')">Cardio</button>
@@ -101,7 +101,7 @@
         const setsDiv = btn.closest('.exercise-group').querySelector('.exercise-sets-dropdown');
         const isHidden = setsDiv.style.display === 'none';
         setsDiv.style.display = isHidden ? 'block' : 'none';
-        btn.style.transform = isHidden ? 'rotate(90deg)' : 'rotate(0deg)';
+        btn.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
     }
 
     function editCategory(btn) {
@@ -110,11 +110,9 @@
         const currentTag = container.querySelector('.workout-category-tag');
         const currentVal = currentTag.innerText.trim();
 
-        // Hide the current tag and edit button
         currentTag.style.display = 'none';
         btn.style.display = 'none';
 
-        // Create a select dropdown
         const select = document.createElement('select');
         select.className = 'form-control';
         select.style.cssText = "font-size: 0.8rem; padding: 2px 6px; height: 28px; width: auto; min-width: 120px;";
@@ -128,7 +126,6 @@
             select.appendChild(opt);
         });
 
-        // Create Save/Cancel buttons
         const actionGroup = document.createElement('div');
         actionGroup.style.cssText = "display: flex; gap: 4px; margin-top: 4px;";
         
@@ -248,25 +245,25 @@
     function startEditSet(btn) {
         const row = btn.closest('.set-row');
         const id = row.getAttribute('data-set-id');
-        const dataText = row.querySelector('.set-data-text');
+        const container = row.querySelector('span:first-child');
         
-        // Parse current weight/reps
-        const matches = dataText.innerText.match(/(\d+\.?\d*).+?(\d+)/);
+        const text = container.innerText;
+        const matches = text.match(/(\d+\.?\d*).*?(\d+)/);
         if (!matches) return;
         
         const oldW = matches[1];
         const oldR = matches[2];
 
-        // Replace row content with inputs
-        dataText.innerHTML = `
-            <input type="number" step="0.1" value="${oldW}" class="form-control" style="width: 55px; height: 24px; padding: 2px; font-size: 0.75rem;">
+        container.innerHTML = `
+            <input type="number" step="0.1" value="${oldW}" class="form-control" style="width: 55px; height: 24px; padding: 2px; font-size: 0.75rem; display: inline-block;">
             ×
-            <input type="number" value="${oldR}" class="form-control" style="width: 45px; height: 24px; padding: 2px; font-size: 0.75rem;">
+            <input type="number" value="${oldR}" class="form-control" style="width: 45px; height: 24px; padding: 2px; font-size: 0.75rem; display: inline-block;">
         `;
         
         const actions = btn.parentElement;
+        actions.style.opacity = "1";
         actions.innerHTML = `
-            <button onclick="saveSet('${id}', this)" style="background:none; border:none; color:var(--accent-orange); cursor:pointer; font-weight:700; font-size:0.7rem;">SAVE</button>
+            <button onclick="saveSet('${id}', this)" style="background:none; border:none; color:var(--accent-primary); cursor:pointer; font-weight:700; font-size:0.7rem;">SAVE</button>
             <button onclick="window.location.reload()" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:0.7rem;">✕</button>
         `;
     }
@@ -296,11 +293,8 @@
     function displayPendingLogs() {
         const queue = JSON.parse(localStorage.getItem('syncQueue') || '[]');
         const pendingContainer = document.getElementById('pendingHistoryList');
-        
-        // Clear previous pending UI state
+        if (!pendingContainer) return;
         pendingContainer.innerHTML = '';
-        document.querySelectorAll('.pending-exercise-group').forEach(el => el.remove());
-        
         if (queue.length === 0) return;
 
         const grouped = {};
@@ -308,106 +302,78 @@
             const dateStr = item.data.workout_date;
             const category = item.data.workout_category || "Uncategorized";
             const key = `${dateStr}_${category}`;
-            
-            if (!grouped[key]) {
-                grouped[key] = {
-                    date: dateStr,
-                    category: category,
-                    exercises: {}
-                };
-            }
-            
+            if (!grouped[key]) grouped[key] = { date: dateStr, category: category, exercises: {} };
             const exName = item.data.exercise_name;
-            if (!grouped[key].exercises[exName]) {
-                grouped[key].exercises[exName] = { max_weight: 0, max_reps: 0, sets: [] };
-            }
-            
-            const w = parseFloat(item.data.weight) || 0;
-            const r = parseInt(item.data.reps) || 0;
-            grouped[key].exercises[exName].sets.push({ weight: w, reps: r });
-            grouped[key].exercises[exName].max_weight = Math.max(grouped[key].exercises[exName].max_weight, w);
-            grouped[key].exercises[exName].max_reps = Math.max(grouped[key].exercises[exName].max_reps, r);
+            if (!grouped[key].exercises[exName]) grouped[key].exercises[exName] = { sets: [] };
+            grouped[key].exercises[exName].sets.push({ weight: item.data.weight, reps: item.data.reps });
         });
 
-        // Render each group as a "Pseudo-Card"
-        const weightUnit = localStorage.getItem('weightUnit') || 'kg';
-        const distanceUnit = localStorage.getItem('distanceUnit') || 'km';
-
         Object.values(grouped).forEach(workout => {
-            const isCardio = workout.category === 'Cardio' || workout.category === 'HIIT';
-            
-            // --- MERGE LOGIC ---
-            let existingCard = null;
-            document.querySelectorAll(`.workout-card[data-date="${workout.date}"]`).forEach(card => {
-                const tag = card.querySelector('.workout-category-tag');
-                if (tag && tag.innerText.trim() === workout.category) {
-                    existingCard = card;
-                }
-            });
-
-            let exercisesHtml = '';
-            Object.entries(workout.exercises).forEach(([exName, stats]) => {
-                let setsHtml = '';
-                stats.sets.forEach((s, sIdx) => {
-                    setsHtml += `
-                        <div class="set-row" style="display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem; color: var(--text-muted); padding: 4px 1rem 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                            <div style="display: flex; gap: 0.8rem; align-items: center;">
-                                <span style="opacity: 0.5; width: 35px;">S${sIdx + 1}</span>
-                                <span>${s.weight}${isCardio ? distanceUnit : weightUnit} ${isCardio ? 'for' : '×'} ${s.reps}${isCardio ? 'min' : ''}</span>
-                            </div>
+            const date = new Date(workout.date);
+            const displayDate = date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+            let exHtml = '';
+            for (const exName in workout.exercises) {
+                const sets = workout.exercises[exName].sets;
+                let maxW = 0, maxR = 0;
+                sets.forEach(s => { 
+                    maxW = Math.max(maxW, parseFloat(s.weight) || 0); 
+                    maxR = Math.max(maxR, parseInt(s.reps) || 0); 
+                });
+                let setRows = '';
+                sets.forEach((s, idx) => {
+                    setRows += `
+                        <div class="set-row" style="display: flex; justify-content: space-between; align-items: center; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.03);">
+                            <span style="font-variant-numeric: tabular-nums;">
+                                <span style="opacity: 0.4; font-size: 0.75rem; margin-right: 8px;">SET ${idx + 1}</span>
+                                <span style="font-weight: 500;">${s.weight}${workout.category === 'Cardio' ? '' : 'kg'}</span>
+                                <span style="opacity: 0.4; margin: 0 4px;">×</span>
+                                <span style="font-weight: 500;">${s.reps}${workout.category === 'Cardio' ? 'min' : ''}</span>
+                            </span>
                         </div>`;
                 });
-
-                exercisesHtml += `
-                    <div class="exercise-group pending-exercise-group">
-                        <div class="exercise-summary-row" style="display: flex; justify-content: space-between; align-items: center; padding: 0.4rem 0; border-bottom: 1px solid var(--glass-border); gap: 1rem;">
-                            <div style="display: flex; align-items: center; gap: 0.4rem; flex: 1; min-width: 0;">
-                                <button class="expand-btn" onclick="toggleSets(this)" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.7rem; padding: 2px; transition: transform 0.2s; flex-shrink: 0;">▶</button>
-                                <span style="font-weight: 600; color: var(--text-main); word-break: break-word; line-height: 1.2; font-size: 0.95rem;">${exName}</span>
-                                <span style="background: rgba(255, 165, 0, 0.1); color: var(--accent-orange); font-size: 0.6rem; padding: 1px 4px; border-radius: 4px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid rgba(255, 165, 0, 0.2); flex-shrink: 0;">Pending</span>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0;">
-                                <div style="display: flex; flex-direction: column; align-items: flex-end; line-height: 1.1;">
-                                    <span style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600;">${stats.max_weight} ${isCardio ? distanceUnit : weightUnit}</span>
-                                    <small style="color: var(--text-muted); opacity: 0.5; font-size: 0.7rem;">${isCardio ? 'Best' : 'Max'}</small>
-                                </div>
-                                <button onclick="deletePending('${workout.date}', '${workout.category}', '${exName}')" style="background: rgba(255, 165, 0, 0.1); border: none; color: var(--accent-orange); cursor: pointer; width: 20px; height: 20px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem;">✕</button>
-                            </div>
+                exHtml += `
+                <div class="exercise-group">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.4rem;">
+                        <div class="exercise-pill">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6.5 6.5 11 11"/><path d="m21 21-4.5-4.5"/><path d="m3 3 4.5 4.5"/><path d="m18 6 3-3"/><path d="m18 18 3 3"/><path d="m6 18-3 3"/><path d="m6 6-3-3"/><path d="M11 6.5a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z"/><path d="M17 12.5a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z"/><path d="M11 17.5a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z"/><path d="M7 12.5a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z"/><path d="M21 12.5a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z"/><path d="M17 6.5a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z"/></svg>
+                            ${exName}
                         </div>
-                        <div class="exercise-sets-dropdown" style="display: none; padding: 0.3rem 0 0.3rem 1.2rem; background: var(--dropdown-bg); border-radius: 0 0 8px 8px;">
-                            ${setsHtml}
-                        </div>
-                    </div>`;
-            });
-
-            if (existingCard) {
-                const container = existingCard.querySelector('.exercises-container');
-                if (container) container.insertAdjacentHTML('afterbegin', exercisesHtml);
-            } else {
-                const d = new Date(workout.date);
-                const displayDate = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
-                const card = document.createElement('div');
-                card.className = "workout-card glass pending-card";
-                card.setAttribute('data-date', workout.date);
-                card.style.cssText = "margin-bottom: 1rem; padding: 1rem; border: 1px solid rgba(255,165,0,0.3); position: relative; opacity: 0.9;";
-                card.innerHTML = `
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.5rem;">
-                        <div>
-                            <h3 style="margin: 0; font-size: 1.1rem;">${displayDate}</h3>
-                            <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.2rem;">
-                                <span class="workout-category-tag" style="color: var(--accent-orange); font-size: 0.85rem; font-weight: 600;">${workout.category}</span>
+                        <div style="display: flex; align-items: center; gap: 0.8rem;">
+                            <div style="text-align: right;">
+                                <div class="stat-weight" style="font-weight: 700; color: var(--text-main); font-size: 0.9rem;">${maxW}${workout.category === 'Cardio' ? '' : 'kg'}</div>
+                                <div class="stat-reps" style="display: none; font-weight: 700; color: var(--text-main); font-size: 0.9rem;">${maxR}${workout.category === 'Cardio' ? 'min' : 'r'}</div>
                             </div>
+                            <button class="expand-btn" onclick="toggleSets(this)" style="background: none; border: none; color: var(--text-muted); cursor: pointer; transition: transform 0.3s; padding: 4px;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                            </button>
                         </div>
-                        <button onclick="deletePending('${workout.date}', '${workout.category}')" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; color: var(--accent-orange);" title="Delete pending workout">
-                            <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" fill="none">
-                                <path d="M10 4h4v2h-4z" /><path d="M4 6h16v2H4z" /><path d="M5 8h14v13H5z" /><path d="M7.5 11h2v7h-2z" /><path d="M11 11h2v7h-2z" /><path d="M14.5 11h2v7h-2z" />
-                            </svg>
-                        </button>
                     </div>
-                    <div class="exercises-container">${exercisesHtml}</div>
-                `;
-                pendingContainer.appendChild(card);
+                    <div class="exercise-sets-dropdown" style="display: none; margin-bottom: 1rem;">
+                        <div class="set-summary">${setRows}</div>
+                    </div>
+                </div>`;
             }
+            const card = document.createElement('div');
+            card.className = 'workout-card glass pending-sync';
+            card.dataset.date = workout.date;
+            card.innerHTML = `
+                <div class="workout-header">
+                    <div>
+                        <div class="workout-date">${displayDate}</div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.2rem;">
+                            <span class="workout-category-tag" style="color: var(--accent-primary); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; background: rgba(99, 102, 241, 0.1); padding: 2px 8px; border-radius: 4px;">${workout.category}</span>
+                            <span style="font-size: 0.7rem; color: var(--accent-primary); font-weight: 600; background: rgba(99, 102, 241, 0.05); padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(99, 102, 241, 0.2); display: flex; align-items: center; gap: 4px;">
+                                <span style="width: 6px; height: 6px; background: var(--accent-primary); border-radius: 50%; display: inline-block;"></span> Pending Sync
+                            </span>
+                        </div>
+                    </div>
+                    <button onclick="deletePending('${workout.date}', '${workout.category}')" style="background: rgba(239, 68, 68, 0.1); border: none; color: var(--accent-red); cursor: pointer; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></svg>
+                    </button>
+                </div>
+                <div class="exercises-container">${exHtml}</div>
+            `;
+            pendingContainer.appendChild(card);
         });
     }
 
@@ -416,27 +382,20 @@
         if (!confirm(msg)) return;
 
         let queue = JSON.parse(localStorage.getItem('syncQueue') || '[]');
-        
-        // Filter out matching items
         queue = queue.filter(item => {
             const d = item.data;
             const dateMatch = d.workout_date === date;
             const catMatch = (d.workout_category || "Uncategorized") === category;
             const exMatch = !exName || d.exercise_name === exName;
-            
-            // Return true to KEEP the item, false to REMOVE it
             return !(dateMatch && catMatch && exMatch);
         });
 
         localStorage.setItem('syncQueue', JSON.stringify(queue));
         showToast('🗑️ Pending log removed.');
         displayPendingLogs();
-        
-        // Update dashboard if we're on a multi-tab view, though usually we're just on history
         window.dispatchEvent(new Event('storage')); 
     }
 
-    // --- Init ---
     window.addEventListener('DOMContentLoaded', () => {
         displayPendingLogs();
         const savedMode = sessionStorage.getItem('historyMode') || 'weight';
@@ -444,7 +403,6 @@
         if (savedDate) document.getElementById('dateFilter').value = savedDate;
         setMode(savedMode, false);
         
-        // Apply Units
         const weightUnit = localStorage.getItem('weightUnit') || 'kg';
         const distanceUnit = localStorage.getItem('distanceUnit') || 'km';
         document.querySelectorAll('.workout-card').forEach(card => {
@@ -459,11 +417,15 @@
 </script>
 
 <style>
-    .delete-exercise-btn { opacity: 0.6; transition: all 0.2s; }
-    .delete-exercise-btn:hover { opacity: 1; transform: scale(1.1); }
-    @media (min-width: 769px) {
-        .delete-exercise-btn { opacity: 0; }
-        .exercise-summary-row:hover .delete-exercise-btn { opacity: 0.8; }
+    .set-row:hover div[style*="opacity: 0"] {
+        opacity: 1 !important;
+    }
+    .workout-card:hover::before {
+        background: var(--accent-secondary);
+        transform: scale(1.2);
+    }
+    @media (max-width: 600px) {
+        .set-row div[style*="opacity: 0"] { opacity: 1 !important; }
     }
 </style>
 {% endblock %}

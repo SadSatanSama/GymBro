@@ -13,9 +13,16 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="/static/index.css">
     <link rel="manifest" href="/static/manifest.json">
-    <meta name="theme-color" content="#FF3366">
+    <meta name="theme-color" content="#6366f1">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- Theme Initialization -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
     
     <!-- Global Logic -->
     <script>
@@ -161,8 +168,9 @@
     <svg style="width:0; height:0; position:absolute;" aria-hidden="true">
         <defs>
             <linearGradient id="logo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="var(--accent-red)" />
-                <stop offset="100%" stop-color="var(--accent-orange)" />
+                <stop offset="0%" stop-color="#000000" />
+                <stop offset="40%" stop-color="var(--accent-primary)" />
+                <stop offset="100%" stop-color="var(--accent-secondary)" />
             </linearGradient>
         </defs>
     </svg>
@@ -210,9 +218,13 @@
                 </div>
                 {% endif %}
 
-                <div class="user-greeting" {% if not user %}style="text-align: center; width: 100%; margin-top: 1rem;"{% endif %}>
-                    <h1>{% if user %}Hello, {{ user.username }}!{% else %}{% block header %}GymBro{% endblock %}{% endif %}</h1>
-                    <p>{% if user %}Let's smash some PRs today.{% else %}{% block subheader %}Your ultimate fitness companion.{% endblock %}{% endif %}</p>
+                <div class="page-header" style="margin-top: 0.5rem;">
+                    <h1 style="font-size: 1.8rem; font-weight: 800; letter-spacing: -0.02em; color: var(--text-main);">
+                        {% block header %}GymBro{% endblock %}
+                    </h1>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">
+                        {% block subheader %}Your ultimate fitness companion.{% endblock %}
+                    </p>
                 </div>
 
                 <div id="offlineIcon" title="Always Offline Enabled" style="display: none; position: absolute; right: 50px; top: 0; width: 40px; height: 40px; align-items: center; justify-content: center; color: #ff4444;">
@@ -266,6 +278,7 @@
             <span class="bottom-nav-label nav-ask">Ask</span>
         </a>
     </nav>
+    <div class="bottom-nav-floor"></div>
     {% endif %}
 
     <script>

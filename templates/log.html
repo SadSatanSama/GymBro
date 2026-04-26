@@ -9,13 +9,13 @@
 {% block content %}
 <div class="glass" style="max-width: 600px; margin: 0 auto;">
     <form action="/log" method="post" id="workoutForm">
-        <div class="form-group" style="display: flex; gap: 1rem;">
-            <div style="flex: 1;">
+        <div class="form-row">
+            <div class="form-group flex-1">
                 <label for="workout_date">Date</label>
                 <input type="date" id="workout_date" name="workout_date" class="form-control" required
                     value="{{ today }}">
             </div>
-            <div style="flex: 1;">
+            <div class="form-group flex-1">
                 <label for="workout_category">Category</label>
                 <select id="workout_category" name="workout_category" class="form-control"
                     onchange="updateFormFields()">
@@ -40,12 +40,9 @@
                 style="cursor: pointer;">
         </div>
 
-        <div class="set-section-header"
-            style="display: flex; justify-content: space-between; align-items: center; margin-top: 2rem; margin-bottom: 1rem; border-top: 1px solid var(--glass-border); padding-top: 1.5rem;">
-            <h3 style="margin: 0; color: var(--text-main);">Set Details</h3>
-            <span id="setCounterBadge"
-                style="background: var(--glass-bg); border: 1px solid var(--accent-orange); color: var(--accent-orange); padding: 4px 12px; border-radius: 12px; font-weight: 600; font-size: 0.9rem;">1st
-                Set</span>
+        <div class="set-section-header">
+            <h3>Set Details</h3>
+            <span id="setCounterBadge" class="badge-set">1st Set</span>
         </div>
 
         <div class="form-group">
@@ -64,15 +61,10 @@
             <textarea id="notes" name="notes" class="form-control" rows="3" placeholder="How did it feel?"></textarea>
         </div>
 
-        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-            <button type="button" class="btn-primary"
-                style="flex: 1.5; background: linear-gradient(135deg, #00b09b, #96c93d); border: none; color: white; transition: all 0.3s ease; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;"
-                onmouseover="this.style.transform='translateY(-2px)';"
-                onmouseout="this.style.transform='translateY(0)';" onclick="finishWorkout()">Finish</button>
-            <button type="submit" class="btn-primary" style="flex: 2;" id="addSetBtn">+ Add Set</button>
-            <button type="button" class="glass-btn"
-                style="flex: 1.5; border: 1px solid #FF3366; color: #FF3366; border-radius: 12px; cursor: pointer; font-weight: 600; transition: all 0.2s;"
-                onclick="clearSet()">Clear</button>
+        <div class="form-actions-row">
+            <button type="button" class="btn-finish" onclick="finishWorkout()">Finish</button>
+            <button type="submit" class="btn-primary" id="addSetBtn">+ Add Set</button>
+            <button type="button" class="btn-clear" onclick="clearSet()">Clear</button>
         </div>
 
         <div id="toastMessage"
