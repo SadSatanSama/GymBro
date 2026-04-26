@@ -120,31 +120,30 @@
 
     // --- Core Logic ---
     async function fetchExercises() {
-        // First, load the fallback so the UI isn't empty
-        processExerciseData(fallbackExercises);
-        
-        const cachedExercises = localStorage.getItem('gymbro_exercise_db');
         console.log("Log: Initializing exercise fetch...");
         
+        // 1. Load fallback immediately (No delay)
+        processExerciseData(fallbackExercises);
+        
+        // 2. Try to merge local cache
+        const cachedExercises = localStorage.getItem('gymbro_exercise_db');
         if (cachedExercises) {
             console.log("Log: Merging local cache...");
             processExerciseData(JSON.parse(cachedExercises));
         }
 
-        if (!isAppOnline()) return;
-
+        // 3. Always attempt network fetch as a background update
         try {
-            console.log("Log: Fetching exercise database...");
+            console.log("Log: Attempting background fetch from GitHub...");
             const response = await fetch("https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json");
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            
-            const data = await response.json();
-            console.log("Log: Database loaded successfully, count:", data.length);
-            
-            localStorage.setItem('gymbro_exercise_db', JSON.stringify(data));
-            processExerciseData(data);
+            if (response.ok) {
+                const data = await response.json();
+                console.log("Log: Background fetch successful, updating cache.");
+                localStorage.setItem('gymbro_exercise_db', JSON.stringify(data));
+                processExerciseData(data);
+            }
         } catch (error) {
-            console.error("Log: Failed to load external exercises:", error);
+            console.warn("Log: Background fetch skipped/failed (Offline or CORS). Fallback/Cache is active.");
         }
     }
 
