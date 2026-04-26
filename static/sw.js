@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gymbro-v135';
+const CACHE_NAME = 'gymbro-v136';
 const ASSETS = [
   '/',
   '/static/index.css',
