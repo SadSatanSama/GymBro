@@ -208,6 +208,14 @@ header {
     padding-top: 0.5rem;
 }
 
+#offlineIcon {
+    transition: color 0.3s ease, filter 0.3s ease;
+}
+
+#offlineIcon[style*="#ff4444"] {
+    filter: drop-shadow(0 0 8px rgba(255, 68, 68, 0.4));
+}
+
 #mini-logo {
     display: none !important;
 }
