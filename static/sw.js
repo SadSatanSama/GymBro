@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gymbro-v136';
+const CACHE_NAME = 'gymbro-v137';
 const ASSETS = [
   '/',
   '/static/index.css',
@@ -36,6 +36,11 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
   
+  // Skip caching for external GitHub DB to prevent "poisoned" cache
+  if (event.request.url.includes('githubusercontent.com')) {
+      return event.respondWith(fetch(event.request));
+  }
+
   event.respondWith(
     caches.match(event.request).then(response => {
       if (response) return response;
