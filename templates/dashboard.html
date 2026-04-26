@@ -96,7 +96,7 @@
                 <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; flex-wrap: wrap; width: 100%;">
                     <select name="category" id="categoryFilter" class="form-control" style="padding: 0.3rem 0.5rem; font-size: 0.9rem; width: 140px; height: 38px; box-sizing: border-box; border-radius: 10px;" onchange="this.form.submit();">
                         <option value="">All Categories</option>
-                        {% for cat in exercises_by_cat.keys() %}
+                        {% for cat in exercises_by_cat %}
                         <option value="{{ cat }}" {% if selected_category==cat %}selected{% endif %}>{{ cat }}</option>
                         {% endfor %}
                     </select>
@@ -111,12 +111,12 @@
 
 <script id="dashboard-data" type="application/json">
 {
-    "weeklyLabels": {{ weekly_labels | tojson | safe }},
-    "exercisesByCat": {{ exercises_by_cat | tojson | safe }},
-    "weeklyWeight": {{ weekly_weight | tojson | safe }},
-    "weeklyReps": {{ weekly_reps | tojson | safe }},
-    "weeklyVolume": {{ weekly_volume | tojson | safe }},
-    "weeklyCardio": {{ weekly_cardio | tojson | safe }}
+    "weeklyLabels": {{ weekly_labels_json | safe }},
+    "exercisesByCat": {{ exercises_by_cat_json | safe }},
+    "weeklyWeight": {{ weekly_weight_json | safe }},
+    "weeklyReps": {{ weekly_reps_json | safe }},
+    "weeklyVolume": {{ weekly_volume_json | safe }},
+    "weeklyCardio": {{ weekly_cardio_json | safe }}
 }
 </script>
 <script src="/static/dashboard.js"></script>

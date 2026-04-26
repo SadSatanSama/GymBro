@@ -298,11 +298,11 @@ async def dashboard(
             "total_volume": round(total_volume, 1),
             "total_cardio_min": total_cardio_min,
             "total_cardio_dist": round(total_cardio_dist, 1),
-            "weekly_labels": weekly_labels,
-            "weekly_weight": weekly_weight,
-            "weekly_reps": weekly_reps,
-            "weekly_volume": weekly_volume,
-            "weekly_cardio": weekly_cardio,
+            "weekly_labels_json": json.dumps(weekly_labels),
+            "weekly_weight_json": json.dumps(weekly_weight),
+            "weekly_reps_json": json.dumps(weekly_reps),
+            "weekly_volume_json": json.dumps(weekly_volume),
+            "weekly_cardio_json": json.dumps(weekly_cardio),
             "workouts_this_week": workouts_this_week,
             "current_streak": current_streak,
             "start_date": display_start_date,
@@ -310,6 +310,7 @@ async def dashboard(
             "selected_category": category or "",
             "selected_exercise": exercise or "",
             "exercises_by_cat": safe_exercises_by_cat,
+            "exercises_by_cat_json": json.dumps(safe_exercises_by_cat),
             "user": current_user
         }
     )
