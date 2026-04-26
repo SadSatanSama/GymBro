@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gymbro-v127';
+const CACHE_NAME = 'gymbro-v135';
 const ASSETS = [
   '/',
   '/log',
