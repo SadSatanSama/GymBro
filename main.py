@@ -20,7 +20,6 @@ from dotenv import load_dotenv
 import google.generativeai as genai
 
 # Security Imports
-from jose import JWTError, jwt
 import bcrypt
 
 load_dotenv()
