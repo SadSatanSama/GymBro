@@ -21,14 +21,10 @@
 </div>
 
 <div class="history-list" id="historyList">
-    <!-- Pending Offline Logs -->
-    <div id="pendingHistoryContainer" style="display: none; margin-bottom: 2rem; border: 1px solid var(--accent-orange); border-radius: 12px; padding: 1rem; background: rgba(255, 165, 0, 0.05);">
-        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; color: var(--accent-orange);">
-            <span class="sync-pulse" style="width: 10px; height: 10px; background: var(--accent-orange); border-radius: 50%;"></span>
-            <h4 style="margin: 0;">Pending Offline Logs</h4>
-        </div>
-        <div id="pendingList"></div>
-    </div>
+    <!-- Pending Offline Logs will be injected here -->
+    <div id="pendingHistoryList"></div>
+
+    {% if history_data %}
 
     {% if history_data %}
         {% for workout in history_data %}
@@ -301,18 +297,14 @@
 
     function displayPendingLogs() {
         const queue = JSON.parse(localStorage.getItem('syncQueue') || '[]');
-        const container = document.getElementById('pendingHistoryContainer');
-        const list = document.getElementById('pendingList');
+        const list = document.getElementById('pendingHistoryList');
         
         if (queue.length === 0) {
-            container.style.display = 'none';
+            list.innerHTML = '';
             return;
         }
 
-        container.style.display = 'block';
         list.innerHTML = '';
-        
-        // Group queue by Date + Category
         const grouped = {};
         queue.forEach(item => {
             const dateStr = item.data.workout_date;

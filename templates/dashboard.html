@@ -167,7 +167,8 @@
         let extraCardioMin = 0;
         let pendingDates = new Set();
         
-        let today = new Date().toISOString().split('T')[0];
+        const now = new Date();
+        const today = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
         let todayPendingWeight = 0;
         let todayPendingReps = 0;
         let todayPendingCardio = 0;
