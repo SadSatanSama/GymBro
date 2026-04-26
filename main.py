@@ -73,12 +73,12 @@ async def get_assetlinks():
 @app.get("/sw.js")
 async def get_sw():
     from fastapi.responses import FileResponse
-    return FileResponse("static/sw.js")
+    return FileResponse("static/sw.js", media_type="application/javascript")
 
 @app.get("/manifest.json")
 async def get_manifest():
     from fastapi.responses import FileResponse
-    return FileResponse("static/manifest.json")
+    return FileResponse("static/manifest.json", media_type="application/manifest+json")
 
 def get_db():
     db = SessionLocal()
