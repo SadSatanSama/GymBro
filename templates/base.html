@@ -6,7 +6,7 @@
     <title>{% block title %}GymBro{% endblock %}</title>
     <link rel="stylesheet" href="/static/index.css?v=127">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="manifest" href="/static/manifest.json">
+    <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#0a0b1e">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
@@ -196,15 +196,6 @@
         const savedTheme = localStorage.getItem('gymbro_theme') || 'dark';
         document.documentElement.setAttribute('data-theme', savedTheme);
         updateThemeIcon();
-
-        // Service Worker Registration
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(reg => console.log('Service Worker registered:', reg.scope))
-                    .catch(err => console.error('Service Worker registration failed:', err));
-            });
-        }
     </script>
 </body>
 </html>

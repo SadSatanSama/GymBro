@@ -75,6 +75,11 @@ async def get_sw():
     from fastapi.responses import FileResponse
     return FileResponse("static/sw.js")
 
+@app.get("/manifest.json")
+async def get_manifest():
+    from fastapi.responses import FileResponse
+    return FileResponse("static/manifest.json")
+
 def get_db():
     db = SessionLocal()
     try:
