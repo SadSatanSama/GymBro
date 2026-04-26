@@ -99,13 +99,13 @@ async def get_current_user(request: Request, db: Session = Depends(get_db)):
 # --- Auth Routes ---
 @app.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
-    return templates.TemplateResponse(request=request, name="login.html", context={"user": None})
+    return templates.TemplateResponse("login.html", {"request": request, "user": None})
 
 @app.post("/login")
 async def login(request: Request, email: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.email == email).first()
     if not user or not verify_password(password, user.hashed_password):
-        return templates.TemplateResponse(request=request, name="login.html", context={"error": "Invalid email or password", "user": None})
+        return templates.TemplateResponse("login.html", {"request": request, "error": "Invalid email or password", "user": None})
     
     token = create_access_token(data={"sub": email})
     response = RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
@@ -114,13 +114,13 @@ async def login(request: Request, email: str = Form(...), password: str = Form(.
 
 @app.get("/register", response_class=HTMLResponse)
 async def register_page(request: Request):
-    return templates.TemplateResponse(request=request, name="register.html", context={"user": None})
+    return templates.TemplateResponse("register.html", {"request": request, "user": None})
 
 @app.post("/register")
 async def register(request: Request, username: str = Form(...), email: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
     existing_user = db.query(models.User).filter(models.User.email == email).first()
     if existing_user:
-        return templates.TemplateResponse(request=request, name="register.html", context={"error": "Email already registered", "user": None})
+        return templates.TemplateResponse("register.html", {"request": request, "error": "Email already registered", "user": None})
     
     hashed_pwd = get_password_hash(password)
     new_user = models.User(email=email, hashed_password=hashed_pwd, username=username)
@@ -290,9 +290,9 @@ async def dashboard(
     workouts_this_week = db.query(models.Workout).join(models.Set).filter(models.Workout.user_id == current_user.id, models.Workout.date >= week_start).distinct().count()
 
     return templates.TemplateResponse(
-        request=request,
-        name="dashboard.html",
-        context={
+        "dashboard.html",
+        {
+            "request": request,
             "total_volume": round(total_volume, 1),
             "total_cardio_min": total_cardio_min,
             "total_cardio_dist": round(total_cardio_dist, 1),
@@ -317,9 +317,8 @@ async def log_workout_form(request: Request, current_user: models.User = Depends
     if not current_user:
         return RedirectResponse(url="/login")
     return templates.TemplateResponse(
-        request=request,
-        name="log.html", 
-        context={"today": date.today().isoformat(), "user": current_user}
+        "log.html", 
+        {"request": request, "today": date.today().isoformat(), "user": current_user}
     )
 
 @app.post("/log")
@@ -414,9 +413,8 @@ async def workout_history(request: Request, db: Session = Depends(get_db), curre
         })
 
     return templates.TemplateResponse(
-        request=request,
-        name="history.html",
-        context={"history_data": history_data, "user": current_user}
+        "history.html",
+        {"request": request, "history_data": history_data, "user": current_user}
     )
 
 @app.delete("/set/{set_id}")
@@ -474,17 +472,15 @@ async def timer_page(request: Request, current_user: models.User = Depends(get_c
     if not current_user:
         return RedirectResponse(url="/login")
     return templates.TemplateResponse(
-        request=request,
-        name="timer.html",
-        context={"user": current_user}
+        "timer.html",
+        {"request": request, "user": current_user}
     )
 
 @app.get("/offline", response_class=HTMLResponse)
 async def offline_page(request: Request):
     return templates.TemplateResponse(
-        request=request,
-        name="offline.html",
-        context={"user": None}
+        "offline.html",
+        {"request": request, "user": None}
     )
 
 @app.get("/settings", response_class=HTMLResponse)
@@ -492,9 +488,8 @@ async def settings_page(request: Request, current_user: models.User = Depends(ge
     if not current_user:
         return RedirectResponse(url="/login")
     return templates.TemplateResponse(
-        request=request,
-        name="settings.html",
-        context={"user": current_user, "is_settings": True}
+        "settings.html",
+        {"request": request, "user": current_user, "is_settings": True}
     )
 
 import csv
@@ -588,9 +583,8 @@ async def ask_page(request: Request, current_user: models.User = Depends(get_cur
     if not current_user:
         return RedirectResponse(url="/login")
     return templates.TemplateResponse(
-        request=request,
-        name="ask.html",
-        context={"user": current_user}
+        "ask.html",
+        {"request": request, "user": current_user}
     )
 
 class ChatMessage(BaseModel):

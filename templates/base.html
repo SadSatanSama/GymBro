@@ -1,152 +1,23 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Gym Progress Tracker{% endblock %}</title>
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="/static/index.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>{% block title %}GymBro{% endblock %}</title>
+    <link rel="stylesheet" href="/static/index.css?v=127">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="manifest" href="/static/manifest.json">
-    <meta name="theme-color" content="#6366f1">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <!-- Theme Initialization -->
+    <meta name="theme-color" content="#0a0b1e">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        (function() {
-            const savedTheme = localStorage.getItem('theme') || 'dark';
-            document.documentElement.setAttribute('data-theme', savedTheme);
-        })();
-    </script>
-    
-    <!-- Global Logic -->
-    <script>
-        // --- Global Connectivity Helper ---
-        function isAppOnline() {
-            const forcedOffline = localStorage.getItem('isForcedOffline') === 'true';
-            return navigator.onLine && !forcedOffline;
-        }
-
-        // --- Hard Network Interceptor (Enforce Always Offline) ---
-        (function() {
-            const originalFetch = window.fetch;
-            window.fetch = function(url, options) {
-                if (!isAppOnline()) {
-                    // Allow local/blob requests, but block everything else
-                    const isLocal = typeof url === 'string' && (url.startsWith('/') || url.startsWith(window.location.origin));
-                    if (!isLocal) {
-                        return Promise.reject(new TypeError("Always Offline mode active: Network request blocked."));
-                    }
-                }
-                return originalFetch.apply(this, arguments);
-            };
-        })();
-
-        // --- Unified Sync Queue System ---
-        const syncQueue = {
-            async sync() {
-                if (!isAppOnline()) return;
-                const pending = JSON.parse(localStorage.getItem('syncQueue') || '[]');
-                if (pending.length === 0) return;
-
-                console.log(`GymBro: Syncing ${pending.length} offline logs...`);
-                
-                const remaining = [];
-                for (const log of pending) {
-                    try {
-                        const response = await fetch(log.url, {
-                            method: 'POST',
-                            body: new URLSearchParams(log.data),
-                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-                        });
-                        if (!response.ok) throw new Error('Sync failed');
-                    } catch (err) {
-                        remaining.push(log);
-                    }
-                }
-                
-                localStorage.setItem('syncQueue', JSON.stringify(remaining));
-                if (remaining.length === 0) {
-                    showToast('✅ Cloud Sync Complete!');
-                    // Refresh if on dashboard or history to show new data
-                    if (window.location.pathname === '/' || window.location.pathname === '/history') {
-                        setTimeout(() => window.location.reload(), 1000);
-                    }
-                }
-            },
-            
-            saveLocally(url, data) {
-                const pending = JSON.parse(localStorage.getItem('syncQueue') || '[]');
-                pending.push({ url, data, timestamp: new Date().toISOString() });
-                localStorage.setItem('syncQueue', JSON.stringify(pending));
-                showToast('📶 Saved Locally (Offline)');
-            }
-        };
-
-        // Network listeners
-        window.addEventListener('online', () => syncQueue.sync());
-        window.addEventListener('load', () => syncQueue.sync());
-
-        // Register Service Worker at Root
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(reg => {
-                        console.log('SW: Registered');
-                        // Force update if new worker found
-                        reg.onupdatefound = () => {
-                            const installingWorker = reg.installing;
-                            installingWorker.onstatechange = () => {
-                                if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    window.location.reload(); 
-                                }
-                            };
-                        };
-                    })
-                    .catch(err => console.log('SW: Error', err));
+                navigator.serviceWorker.register('/sw.js').then(reg => {
+                    console.log('SW Registered');
+                });
             });
         }
-
-        // --- Translation & Theme ---
-        const translations = {
-            en: { nav_home: "Dashboard", nav_log: "Log Workout", nav_history: "History", nav_timer: "Rest Timer", nav_ask: "Ask AI", header_dashboard: "Dashboard", header_log: "Log Workout", header_history: "History", header_timer: "Rest Timer", header_settings: "Settings", subheader_dashboard: "Performance at a glance.", subheader_log: "Track your progress.", subheader_history: "Review past sessions.", subheader_timer: "Optimize recovery.", subheader_settings: "Customize experience.", btn_add_set: "+ Add Set", btn_finish: "Finish Workout" },
-            hi: { nav_home: "डैशबोर्ड", nav_log: "लॉग", nav_history: "इतिहास", nav_timer: "टाइमर", nav_ask: "पूछें", header_dashboard: "डैशबोर्ड", header_log: "लॉग करें", header_history: "इतिहास", header_timer: "टाइमर", header_settings: "सेटिंग्स", subheader_dashboard: "आपका प्रदर्शन।", subheader_log: "प्रगति ट्रैक करें।", subheader_history: "सत्र देखें।", subheader_timer: "आराम का समय।", subheader_settings: "सेटिंग्स बदलें।", btn_add_set: "+ सेट", btn_finish: "समाप्त" }
-        };
-
-        function translatePage() {
-            const lang = localStorage.getItem('preferredLanguage') || 'en';
-            const dict = translations[lang] || translations.en;
-            document.querySelectorAll('.nav-home').forEach(el => el.innerText = dict.nav_home);
-            document.querySelectorAll('.nav-log').forEach(el => el.innerText = dict.nav_log);
-            document.querySelectorAll('.nav-history').forEach(el => el.innerText = dict.nav_history);
-            document.querySelectorAll('.nav-timer').forEach(el => el.innerText = dict.nav_timer);
-            document.querySelectorAll('.nav-ask').forEach(el => el.innerText = dict.nav_ask);
-            
-            const path = window.location.pathname;
-
-            // Don't override headings on auth pages — Jinja2 handles those
-            if (path === '/login' || path === '/register') return;
-
-            let key = "dashboard";
-            if (path.includes('log')) key = "log";
-            else if (path.includes('history')) key = "history";
-            else if (path.includes('timer')) key = "timer";
-            else if (path.includes('settings')) key = "settings";
-
-            const h1 = document.querySelector('header h1');
-            const p = document.querySelector('header p');
-            if (h1) h1.innerText = dict[`header_${key}`];
-            if (p) p.innerText = dict[`subheader_${key}`];
-        }
-
-        window.addEventListener('languageChanged', translatePage);
-        window.addEventListener('DOMContentLoaded', translatePage);
-        // --- Global Toast Notification System ---
+        
         function showToast(message, type = 'success') {
             const existing = document.getElementById('gymToast');
             if (existing) existing.remove();
@@ -198,105 +69,131 @@
         {% endif %}
 
         <main class="content" {% if not user %}style="width: 100%; margin-left: 0; padding: 1rem;"{% endif %}>
-            <header>
+            <header style="position: relative; min-height: 85px; width: 100%; margin-bottom: 1rem; padding-top: 0.5rem;">
                 {% if user %}
-                <div style="position: absolute; left: 0; top: 0; display: flex; gap: 0.75rem;">
+                <!-- Left Group -->
+                <div style="position: absolute; left: 0; top: 0; display: flex; gap: 0.75rem; z-index: 10;">
                     {% if is_settings %}
-                    <!-- On settings page: show a Close (X) button to go back -->
-                    <button onclick="history.back()" class="glass" title="Close Settings" style="padding: 0.5rem; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; color: var(--accent-red); background: none; border: none;">
+                    <div onclick="history.back()" class="glass" title="Close Settings" style="padding: 0.5rem; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; color: var(--accent-red); background: none; border: none;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                    </button>
+                    </div>
                     {% else %}
-                    <!-- On other pages: show the settings gear icon -->
-                    <a href="/settings" class="glass" title="Settings" style="padding: 0.5rem; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; color: var(--text-main); text-decoration: none;">
+                    <div onclick="window.location.href='/settings'" class="glass" title="Settings" style="padding: 0.5rem; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; color: var(--text-main);">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
-                    </a>
+                    </div>
                     {% endif %}
-                    <a href="/logout" class="glass" title="Logout" style="padding: 0.5rem; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; color: var(--accent-red); text-decoration: none;">
+                    <div onclick="window.location.href='/logout'" class="glass" title="Logout" style="padding: 0.5rem; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; color: var(--accent-red);">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-                    </a>
+                    </div>
+                </div>
+
+                <!-- Center Logo -->
+                <div style="position: absolute; left: 50%; top: 0; transform: translateX(-50%); z-index: 10;">
+                    <div id="mini-logo" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; pointer-events: none; user-select: none; background: transparent !important; border: none !important; box-shadow: none !important;">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21C16.9706 21 21 16.9706 21 12H17C17 14.7614 14.7614 17 12 17C9.23858 17 7 14.7614 7 12C7 9.23858 9.23858 7 12 7C13.8454 7 15.4593 8.00161 16.3214 9.5M21 12V3H17V6.5" stroke="url(#logo-grad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle cx="12" cy="12" r="1.5" fill="url(#logo-grad)"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Right Group -->
+                <div id="header-right-group" style="position: absolute; right: 0; top: 0; display: flex; flex-direction: row; align-items: center; gap: 0.75rem; z-index: 100;">
+                    <div id="offlineIcon" class="glass" title="Always Offline Enabled" style="display: none; width: 40px; height: 40px; align-items: center; justify-content: center; color: #ff4444; border-radius: 50%; pointer-events: none; user-select: none; flex-shrink: 0;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.58 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+                    </div>
+                    <div id="themeToggleBtn" onclick="toggleTheme()" class="glass" style="padding: 0; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; color: var(--text-main); background: none; border: none; flex-shrink: 0;">
+                    </div>
                 </div>
                 {% endif %}
 
-                <div class="page-header" style="margin-top: 0.5rem;">
-                    <h1 style="font-size: 1.8rem; font-weight: 800; letter-spacing: -0.02em; color: var(--text-main);">
+                <div class="page-header" style="text-align: center; width: 100%; padding-top: 1.8rem;">
+                    <h1 style="font-size: 2.2rem; font-weight: 900; letter-spacing: -0.02em; color: var(--text-main); margin: 0;">
                         {% block header %}GymBro{% endblock %}
                     </h1>
-                    <p style="color: var(--text-muted); font-size: 0.9rem;">
+                    <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 0.2rem; font-weight: 500;">
                         {% block subheader %}Your ultimate fitness companion.{% endblock %}
                     </p>
                 </div>
-
-                <div id="offlineIcon" title="Always Offline Enabled" style="display: none; position: absolute; right: 50px; top: 0; width: 40px; height: 40px; align-items: center; justify-content: center; color: #ff4444;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.58 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
-                </div>
-
-                <script>
-                    function checkOfflineStatus() {
-                        const icon = document.getElementById('offlineIcon');
-                        if (icon) {
-                            icon.style.display = localStorage.getItem('isForcedOffline') === 'true' ? 'flex' : 'none';
-                        }
-                    }
-                    window.addEventListener('DOMContentLoaded', checkOfflineStatus);
-                    window.addEventListener('storage', () => {
-                        checkOfflineStatus();
-                        if (typeof syncLiveStats === 'function') syncLiveStats();
-                        if (typeof displayPendingLogs === 'function') displayPendingLogs();
-                    });
-                </script>
-                <button id="themeToggleBtn" onclick="toggleTheme()" class="glass" style="position: absolute; right: 0; top: 0; padding: 0.5rem; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; color: var(--text-main);">
-                </button>
             </header>
+
             <div class="main-content">
+                <!-- Offline Sync Warning -->
+                <div id="offlineSyncWarning" class="glass offline-banner" style="display: none; padding: 1rem; border-radius: 12px; margin-bottom: 1rem; border: 1px solid rgba(255,107,107,0.3); background: rgba(255,107,107,0.1); color: #ff6b6b; font-weight: 500;">
+                    <div class="banner-content" style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span>⚠️ Connect within <strong id="offlineDaysCount">15</strong> days to sync data and avoid loss.</span>
+                    </div>
+                </div>
                 {% block content %}{% endblock %}
             </div>
         </main>
-    </div>
 
-    <!-- BOTTOM NAV -->
-    {% if user %}
-    <nav class="bottom-nav">
-        <a href="/" class="bottom-nav-item {% block nav_home_m %}{% endblock %}">
-            <span class="bottom-nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg></span>
-            <span class="bottom-nav-label nav-home">Dashboard</span>
-        </a>
-        <a href="/log" class="bottom-nav-item {% block nav_log_m %}{% endblock %}">
-            <span class="bottom-nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.4 14.4 9.6 9.6"/><path d="M18.657 21.485a2 2 0 1 1-2.829-2.828l-1.767 1.768a2 2 0 1 1-2.829-2.829l6.364-6.364a2 2 0 1 1 2.829 2.829l-1.768 1.767a2 2 0 1 1 2.828 2.829z"/><path d="m21.5 21.5-1.4-1.4"/><path d="M3.9 3.9 2.5 2.5"/><path d="M6.404 12.768a2 2 0 1 1-2.829-2.829l1.768-1.767a2 2 0 1 1-2.828-2.829l2.828-2.828a2 2 0 1 1 2.829 2.828l1.767-1.768a2 2 0 1 1 2.829 2.829z"/></svg></span>
-            <span class="bottom-nav-label nav-log">Log</span>
-        </a>
-        <a href="/history" class="bottom-nav-item {% block nav_history_m %}{% endblock %}">
-            <span class="bottom-nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg></span>
-            <span class="bottom-nav-label nav-history">History</span>
-        </a>
-        <a href="/timer" class="bottom-nav-item {% block nav_timer_m %}{% endblock %}">
-            <span class="bottom-nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/></svg></span>
-            <span class="bottom-nav-label nav-timer">Timer</span>
-        </a>
-        <a href="/ask" class="bottom-nav-item {% block nav_ask_m %}{% endblock %}">
-            <span class="bottom-nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg></span>
-            <span class="bottom-nav-label nav-ask">Ask</span>
-        </a>
-    </nav>
-    <div class="bottom-nav-floor"></div>
-    {% endif %}
+        <!-- Bottom Navigation Mobile -->
+        {% include 'bottom_nav.html' %}
+        <div class="bottom-nav-floor"></div>
+    </div>
 
     <script>
         const sunIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>`;
         const moonIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>`;
+        
+        // --- Offline Sync Warning Logic ---
+        async function checkOfflineStatus() {
+            const warningBanner = document.getElementById('offlineSyncWarning');
+            const daysCount = document.getElementById('offlineDaysCount');
+            const offlineIcon = document.getElementById('offlineIcon');
+            
+            // Check real network status + forced offline flag
+            const isReallyOffline = !navigator.onLine;
+            const isForcedOffline = localStorage.getItem('isForcedOffline') === 'true';
+
+            if (offlineIcon) {
+                offlineIcon.style.display = isForcedOffline ? 'flex' : 'none';
+            }
+
+            if (isReallyOffline || isForcedOffline) {
+                let offlineStart = localStorage.getItem('offline_start_timestamp');
+                
+                if (!offlineStart) {
+                    offlineStart = Date.now();
+                    localStorage.setItem('offline_start_timestamp', offlineStart);
+                }
+
+                const msPassed = Date.now() - parseInt(offlineStart);
+                const daysPassed = Math.floor(msPassed / (1000 * 60 * 60 * 24));
+                const remaining = Math.max(0, 15 - daysPassed);
+
+                if (daysCount) daysCount.textContent = remaining;
+                if (warningBanner) warningBanner.style.display = 'block';
+            } else {
+                localStorage.removeItem('offline_start_timestamp');
+                if (warningBanner) warningBanner.style.display = 'none';
+            }
+        }
+
+        window.addEventListener('load', checkOfflineStatus);
+        window.addEventListener('online', checkOfflineStatus);
+        window.addEventListener('offline', checkOfflineStatus);
+        window.addEventListener('storage', checkOfflineStatus);
+
         function updateThemeIcon() {
             const currentTheme = document.documentElement.getAttribute('data-theme');
             const btn = document.getElementById('themeToggleBtn');
-            if (btn) btn.innerHTML = currentTheme === 'light' ? moonIcon : sunIcon;
+            if (btn) {
+                btn.innerHTML = currentTheme === 'light' ? moonIcon : sunIcon;
+            }
         }
+
         function toggleTheme() {
             const currentTheme = document.documentElement.getAttribute('data-theme');
             const newTheme = currentTheme === 'light' ? 'dark' : 'light';
             document.documentElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
+            localStorage.setItem('gymbro_theme', newTheme);
             updateThemeIcon();
-            window.dispatchEvent(new Event('themeChanged'));
         }
+
+        const savedTheme = localStorage.getItem('gymbro_theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
         updateThemeIcon();
     </script>
 </body>

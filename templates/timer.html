@@ -7,48 +7,50 @@
 {% block subheader %}Optimize your recovery between sets.{% endblock %}
 
 {% block content %}
-<div class="timer-container glass" style="max-width: 500px; margin: 0 auto; padding: 2rem; border-radius: var(--radius); text-align: center;">
+<div class="timer-container glass">
     
     <!-- Circular Display -->
-    <div class="timer-display" style="position: relative; width: 250px; height: 250px; margin: 0 auto 1.5rem auto; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 6px solid rgba(255, 51, 102, 0.2); box-shadow: 0 0 30px rgba(255, 51, 102, 0.1) inset;">
-        <h1 id="timeDisplay" style="font-size: 4.5rem; font-weight: 700; color: var(--accent-red); margin: 0; font-variant-numeric: tabular-nums; text-shadow: 0 0 10px rgba(255, 51, 102, 0.3);">01:30</h1>
+    <div id="timerCircle" class="timer-display-circle">
+        <h1 id="timeDisplay" class="timer-time-text">01:30</h1>
     </div>
 
     <!-- Alarm Toggle -->
-    <div style="display: flex; justify-content: center; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem;">
-        <label class="glass" style="display: flex; align-items: center; gap: 0.5rem; padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 0.9rem;">
-            <input type="checkbox" id="muteToggle" style="width: 16px; height: 16px; accent-color: var(--accent-red);">
-            <span style="color: var(--text-muted);">Silent Mode</span>
+    <div style="display: flex; justify-content: center; align-items: center; gap: 0.75rem; margin-bottom: 2rem;">
+        <label class="glass" style="display: flex; align-items: center; gap: 0.5rem; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.85rem; border: 1px solid var(--glass-border);">
+            <input type="checkbox" id="muteToggle" style="width: 16px; height: 16px; accent-color: var(--accent-primary);">
+            <span style="color: var(--text-muted); font-weight: 600;">Silent Mode</span>
         </label>
     </div>
 
     <!-- Controls -->
-    <div style="display: flex; gap: 1rem; justify-content: center; margin-bottom: 2rem;">
-        <button id="btnStart" class="btn-primary" onclick="toggleTimer()" style="flex: 1; padding: 1rem; font-size: 1.2rem; border-radius: 12px; transition: 0.3s;">Start</button>
-        <button class="glass-btn" onclick="resetTimer()" style="padding: 1rem 1.5rem; border-radius: 12px; font-weight: 600; font-size: 1.1rem; cursor: pointer;">Reset</button>
+    <div class="timer-control-buttons">
+        <button id="btnStart" class="btn-primary" onclick="toggleTimer()" style="flex: 2; height: 55px; font-size: 1.1rem; font-weight: 700;">Start</button>
+        <button class="glass-btn" onclick="resetTimer()" style="flex: 1; height: 55px; font-weight: 700;">Reset</button>
     </div>
 
     <!-- Quick Presets -->
-    <div style="margin-bottom: 2rem;">
-        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 0.8rem; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600;">Quick Presets</p>
-        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem;">
-            <button class="glass-btn" onclick="setTime(30)" style="padding: 0.75rem 0; border-radius: 8px; cursor: pointer; font-weight: 600;">30s</button>
-            <button class="glass-btn" onclick="setTime(60)" style="padding: 0.75rem 0; border-radius: 8px; cursor: pointer; font-weight: 600;">60s</button>
-            <button class="glass-btn" onclick="setTime(90)" style="padding: 0.75rem 0; border-radius: 8px; cursor: pointer; font-weight: 600;">90s</button>
-            <button class="glass-btn" onclick="setTime(120)" style="padding: 0.75rem 0; border-radius: 8px; cursor: pointer; font-weight: 600;">2m</button>
+    <div style="margin-bottom: 2.5rem;">
+        <span class="timer-section-label">Quick Presets</span>
+        <div class="timer-presets-grid">
+            <button class="glass-btn" onclick="setTime(30)">30s</button>
+            <button class="glass-btn" onclick="setTime(60)">60s</button>
+            <button class="glass-btn" onclick="setTime(90)">90s</button>
+            <button class="glass-btn" onclick="setTime(120)">2m</button>
         </div>
     </div>
 
     <!-- Manual Input -->
-    <div style="border-top: 1px solid var(--glass-border); padding-top: 1.5rem;">
-        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 0.8rem; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600;">Custom Time</p>
-        <div style="display: flex; gap: 0.5rem; justify-content: center; align-items: center;">
-            <input type="number" id="inputMin" class="form-control" placeholder="Min" min="0" max="59" style="width: 80px; text-align: center; font-size: 1.1rem; padding: 0.5rem;">
-            <span style="font-size: 1.5rem; font-weight: bold; color: var(--text-muted);">:</span>
-            <input type="number" id="inputSec" class="form-control" placeholder="Sec" min="0" max="59" style="width: 80px; text-align: center; font-size: 1.1rem; padding: 0.5rem;">
-            <button class="btn-primary" onclick="setCustomTime()" style="padding: 0.5rem 1.2rem; border-radius: 8px; font-size: 0.9rem;">Set</button>
+    <div style="border-top: 1px solid var(--glass-border); padding-top: 2rem;">
+        <span class="timer-section-label">Custom Time</span>
+        <div class="timer-input-group">
+            <input type="number" id="inputMin" class="form-control" placeholder="0" min="0" max="59">
+            <span style="font-size: 1.2rem; font-weight: bold; color: var(--text-muted); opacity: 0.5;">:</span>
+            <input type="number" id="inputSec" class="form-control" placeholder="00" min="0" max="59">
+            <button class="btn-primary" onclick="setCustomTime()" style="padding: 0 1.5rem; height: 45px; border-radius: 12px; font-size: 0.9rem; font-weight: 700;">Set</button>
         </div>
     </div>
+
+</div>
 
 </div>
 
@@ -60,6 +62,7 @@
 
     const display = document.getElementById('timeDisplay');
     const btnStart = document.getElementById('btnStart');
+    const timerCircle = document.getElementById('timerCircle');
     
     function updateDisplay() {
         const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
@@ -120,8 +123,9 @@
             // Pause
             clearInterval(timerInterval);
             isRunning = false;
+            timerCircle.classList.remove('active');
             btnStart.innerText = "Resume";
-            btnStart.style.background = "var(--accent-orange)";
+            btnStart.classList.add('paused');
         } else {
             // Start
             if(timeLeft <= 0) return;
@@ -132,10 +136,9 @@
             }
 
             isRunning = true;
+            timerCircle.classList.add('active');
             btnStart.innerText = "Pause";
-            btnStart.style.background = "#4ECDC4"; // Teal active state
-            display.style.color = "var(--text-main)";
-            display.style.textShadow = "none";
+            btnStart.classList.remove('paused');
             
             timerInterval = setInterval(() => {
                 timeLeft--;
@@ -143,20 +146,17 @@
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
                     isRunning = false;
+                    timerCircle.classList.remove('active');
                     btnStart.innerText = "Start";
-                    btnStart.style.background = "var(--accent-red)";
                     
                     // Trigger Alarm!
                     playAlarm();
 
-                    // Visual Flash for 00:00
-                    display.style.color = "#4ECDC4";
-                    display.style.textShadow = "0 0 20px rgba(78, 205, 196, 0.6)";
-                    
-                    setTimeout(() => {
-                        display.style.color = "var(--accent-red)";
-                        display.style.textShadow = "0 0 10px rgba(255, 51, 102, 0.3)";
-                    }, 2000);
+                    // Visual Flash
+                    display.style.opacity = "0.5";
+                    setTimeout(() => display.style.opacity = "1", 200);
+                    setTimeout(() => display.style.opacity = "0.5", 400);
+                    setTimeout(() => display.style.opacity = "1", 600);
                 }
             }, 1000);
         }
@@ -166,10 +166,8 @@
         clearInterval(timerInterval);
         isRunning = false;
         timeLeft = initialTime;
+        timerCircle.classList.remove('active');
         btnStart.innerText = "Start";
-        btnStart.style.background = "var(--accent-red)";
-        display.style.color = "var(--accent-red)";
-        display.style.textShadow = "0 0 10px rgba(255, 51, 102, 0.3)";
         updateDisplay();
     }
 

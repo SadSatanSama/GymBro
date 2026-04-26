@@ -59,9 +59,25 @@
                         <input type="date" name="end_date" value="{{ end_date }}" class="form-control" style="padding: 0.3rem 0.5rem; font-size: 0.9rem; width: 130px; height: 34px; box-sizing: border-box;" required>
                     </div>
                 </div>
-                <div class="chart-actions" style="display: flex; gap: 0.5rem; align-items: center; justify-content: center; width: 100%; margin-top: 0.5rem;">
-                    <button type="submit" class="btn-primary" style="padding: 0 1.2rem; font-size: 0.9rem; border-radius: 10px; height: 38px; min-width: 90px; display: flex; align-items: center; justify-content: center; box-sizing: border-box; font-weight: 700;">Update</button>
-                    <a href="/?all_time=true" class="glass-btn" style="padding: 0 1.2rem; font-size: 0.9rem; border-radius: 10px; height: 38px; min-width: 90px; text-decoration: none; display: flex; align-items: center; justify-content: center; box-sizing: border-box; font-weight: 700;">Clear</a>
+                <div class="chart-actions" style="display: flex; gap: 0.5rem; align-items: center; justify-content: center; width: 100%; margin-top: -0.2rem; margin-bottom: 0.75rem;">
+                    <button type="submit" class="btn-primary" style="padding: 0 1.2rem; font-size: 0.9rem; border-radius: 10px; height: 36px; min-width: 90px; display: flex; align-items: center; justify-content: center; box-sizing: border-box !important; font-weight: 700; border: none;">Update</button>
+                    <a href="/?all_time=true" class="glass-btn" style="padding: 0 1.2rem; font-size: 0.9rem; border-radius: 10px; height: 36px; min-width: 90px; text-decoration: none; display: flex; align-items: center; justify-content: center; box-sizing: border-box !important; font-weight: 700; border: 1px solid var(--glass-border);">Clear</a>
+                </div>
+            </div>
+
+            <!-- Chart Legend (Index) -->
+            <div id="chart-index" style="display: flex; justify-content: center; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">
+                    <span style="width: 10px; height: 10px; border-radius: 50%; background: #6366f1;"></span> Volume
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">
+                    <span style="width: 10px; height: 10px; border-radius: 50%; background: #10b981;"></span> Weight
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">
+                    <span style="width: 10px; height: 10px; border-radius: 50%; background: #f59e0b;"></span> Reps
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">
+                    <span style="width: 10px; height: 10px; border-radius: 50%; background: #ec4899;"></span> Cardio
                 </div>
             </div>
 
@@ -95,233 +111,13 @@
 
 <script id="dashboard-data" type="application/json">
 {
+    "weeklyLabels": {{ weekly_labels | tojson | safe }},
     "exercisesByCat": {{ exercises_by_cat | tojson | safe }},
     "weeklyWeight": {{ weekly_weight | tojson | safe }},
     "weeklyReps": {{ weekly_reps | tojson | safe }},
     "weeklyVolume": {{ weekly_volume | tojson | safe }},
-    "weeklyCardio": {{ weekly_cardio | tojson | safe }},
-    "weeklyLabels": {{ weekly_labels | tojson | safe }}
+    "weeklyCardio": {{ weekly_cardio | tojson | safe }}
 }
 </script>
-
-<script>
-    const dashboardData = JSON.parse(document.getElementById('dashboard-data').textContent);
-    let volumeChart;
-
-    // --- Chart Core ---
-    function initChart() {
-        const ctx = document.getElementById('volumeChart').getContext('2d');
-        const theme = getChartTheme();
-        const mode = sessionStorage.getItem('chartMode') || 'volume';
-        
-        let label = 'Total Volume (kg)';
-        let chartData = [...dashboardData.weeklyVolume];
-        let color = '#4ECDC4'; // Volume: Teal
-        let bg = 'rgba(78, 205, 196, 0.2)';
-
-        volumeChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: dashboardData.weeklyLabels,
-                datasets: [{
-                    label: label,
-                    data: chartData,
-                    borderColor: color,
-                    backgroundColor: bg,
-                    borderWidth: 3,
-                    tension: 0.4,
-                    fill: true
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: { beginAtZero: true, grid: { color: theme.grid }, ticks: { color: theme.text } },
-                    x: { grid: { color: theme.grid }, ticks: { color: theme.text } }
-                },
-                plugins: { legend: { labels: { color: theme.legend } } }
-            }
-        });
-    }
-
-    function getChartTheme() {
-        const isLight = document.documentElement.getAttribute('data-theme') === 'light';
-        return {
-            grid: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)',
-            text: isLight ? '#64748b' : '#a0a0a0',
-            legend: isLight ? '#1e293b' : '#ffffff'
-        };
-    }
-
-    // --- Live Stats Sync ---
-    function syncLiveStats() {
-        const queue = JSON.parse(localStorage.getItem('syncQueue') || '[]');
-        if (queue.length === 0) return;
-
-        console.log("Dashboard: Syncing", queue.length, "pending sets into view...");
-        
-        const weightUnit = localStorage.getItem('weightUnit') || 'kg';
-        let extraVolume = 0;
-        let extraCardioDist = 0;
-        let extraCardioMin = 0;
-        let pendingDates = new Set();
-        
-        const now = new Date();
-        const today = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
-        let todayPendingWeight = 0;
-        let todayPendingReps = 0;
-        let todayPendingCardio = 0;
-        let todayPendingVolume = 0;
-
-        queue.forEach(item => {
-            const data = item.data;
-            const w = parseFloat(data.weight) || 0;
-            const r = parseInt(data.reps) || 0;
-            const isCardio = data.workout_category === 'Cardio' || data.workout_category === 'HIIT';
-
-            if (isCardio) {
-                extraCardioDist += w;
-                extraCardioMin += r;
-            } else {
-                extraVolume += (w * r);
-            }
-
-            pendingDates.add(data.workout_date);
-
-            // Tracking for chart (today only for simplicity)
-            if (data.workout_date === today) {
-                if (isCardio) {
-                    todayPendingCardio = Math.max(todayPendingCardio, r);
-                } else {
-                    todayPendingWeight = Math.max(todayPendingWeight, w);
-                    todayPendingReps = Math.max(todayPendingReps, r);
-                    todayPendingVolume += (w * r);
-                }
-            }
-        });
-
-        // Update Stat Cards
-        const volumeEl = document.getElementById('stat-total-volume');
-        const baseVolume = parseFloat(volumeEl.dataset.baseValue);
-        volumeEl.innerText = `${(baseVolume + extraVolume).toFixed(1)} ${weightUnit}`;
-        volumeEl.style.color = "var(--accent-orange)"; // Highlight pending
-
-        const cardioEl = document.getElementById('stat-total-cardio');
-        const baseDist = parseFloat(cardioEl.dataset.baseDist);
-        const baseMin = parseInt(cardioEl.dataset.baseMin);
-        cardioEl.innerHTML = `${(baseDist + extraCardioDist).toFixed(1)} <span class="unit-dist">km</span> / ${baseMin + extraCardioMin} min`;
-        cardioEl.style.color = "var(--accent-orange)";
-
-        // Workouts this week (rough estimate)
-        const workoutsEl = document.getElementById('stat-workouts-week');
-        const baseWorkouts = parseInt(workoutsEl.dataset.baseValue);
-        workoutsEl.innerText = baseWorkouts + pendingDates.size;
-        workoutsEl.style.color = "var(--accent-orange)";
-
-        // Update Chart for today
-        const lastIdx = dashboardData.weeklyLabels.length - 1;
-        // Check if the last label represents "Today"
-        const todayDay = new Date().getDate();
-        if (dashboardData.weeklyLabels[lastIdx].includes(todayDay)) {
-            dashboardData.weeklyWeight[lastIdx] = Math.max(dashboardData.weeklyWeight[lastIdx], todayPendingWeight);
-            dashboardData.weeklyReps[lastIdx] = Math.max(dashboardData.weeklyReps[lastIdx], todayPendingReps);
-            dashboardData.weeklyCardio[lastIdx] = Math.max(dashboardData.weeklyCardio[lastIdx], todayPendingCardio);
-            dashboardData.weeklyVolume[lastIdx] += todayPendingVolume;
-            
-            // Re-render the chart with new data
-            setChartMode(sessionStorage.getItem("dashboardChartMode") || 'weight');
-        }
-    }
-
-    function setChartMode(mode) {
-        sessionStorage.setItem('dashboardChartMode', mode);
-        document.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
-        
-        let label = 'Total Volume (kg)';
-        let data = [...dashboardData.weeklyVolume];
-        let color = '#4ECDC4'; // Volume: Teal
-        let bg = 'rgba(78, 205, 196, 0.2)';
-
-        if (mode === 'volume') {
-            document.getElementById('btnChartVolume').classList.add('active');
-        } else if (mode === 'weight') {
-            document.getElementById('btnChartWeight').classList.add('active');
-            label = `Max Weight (${localStorage.getItem('weightUnit') || 'kg'})`;
-            data = [...dashboardData.weeklyWeight];
-            color = '#FF3366'; // Weight: Pink
-            bg = 'rgba(255, 51, 102, 0.2)';
-        } else if (mode === 'reps') {
-            document.getElementById('btnChartReps').classList.add('active');
-            label = 'Max Reps';
-            data = [...dashboardData.weeklyReps];
-            color = '#FF9F43'; // Reps: Orange
-            bg = 'rgba(255, 159, 67, 0.2)';
-        } else if (mode === 'cardio') {
-            document.getElementById('btnChartCardio').classList.add('active');
-            label = 'Max Cardio (min/km)';
-            data = [...dashboardData.weeklyCardio];
-            color = '#2E90FA'; // Cardio: Blue
-            bg = 'rgba(46, 144, 250, 0.2)';
-        }
-
-        if (volumeChart) {
-            volumeChart.data.datasets[0].label = label;
-            volumeChart.data.datasets[0].data = data;
-            volumeChart.data.datasets[0].borderColor = color;
-            volumeChart.data.datasets[0].backgroundColor = bg;
-            volumeChart.update();
-        }
-    }
-
-    // --- Dropdowns & Filters ---
-    function updateExerciseDropdown() {
-        const catSelect = document.getElementById("categoryFilter");
-        const exSelect = document.getElementById("exerciseFilter");
-        const selectedCat = catSelect.value;
-        const selectedExercise = exSelect.getAttribute("data-selected");
-
-        exSelect.innerHTML = '<option value="">All Exercises</option>';
-        let exercises = [];
-        if (selectedCat && exercisesByCat[selectedCat]) {
-            exercises = exercisesByCat[selectedCat];
-        } else if (!selectedCat) {
-            Object.values(exercisesByCat).forEach(list => exercises = exercises.concat(list));
-            exercises = [...new Set(exercises)].sort();
-        }
-
-        exercises.forEach(ex => {
-            const opt = document.createElement('option');
-            opt.value = ex;
-            opt.innerText = ex;
-            if (ex === selectedExercise) opt.selected = true;
-            exSelect.appendChild(opt);
-        });
-    }
-
-    // --- Init ---
-    window.addEventListener("DOMContentLoaded", () => {
-        initChart();
-        syncLiveStats(); // Inject offline data immediately
-        updateExerciseDropdown();
-        
-        const savedMode = sessionStorage.getItem("dashboardChartMode") || 'weight';
-        setChartMode(savedMode);
-
-        // Apply visual units
-        const weightUnit = localStorage.getItem('weightUnit') || 'kg';
-        const distanceUnit = localStorage.getItem('distanceUnit') || 'km';
-        document.querySelector('.unit-dist').innerText = distanceUnit === 'km' ? 'km' : 'mi';
-    });
-
-    window.addEventListener('themeChanged', () => {
-        const newTheme = getChartTheme();
-        volumeChart.options.scales.y.grid.color = newTheme.grid;
-        volumeChart.options.scales.y.ticks.color = newTheme.text;
-        volumeChart.options.scales.x.grid.color = newTheme.grid;
-        volumeChart.options.scales.x.ticks.color = newTheme.text;
-        volumeChart.options.plugins.legend.labels.color = newTheme.legend;
-        volumeChart.update();
-    });
-</script>
+<script src="/static/dashboard.js"></script>
 {% endblock %}

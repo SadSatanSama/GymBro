@@ -8,6 +8,8 @@
     --accent-primary: #6366f1; /* Indigo */
     --accent-secondary: #ec4899; /* Pink */
     --accent-orange: #f59e0b; /* Amber */
+    --accent-red: #ef4444;    /* Red */
+    --accent-teal: #14b8a6;   /* Teal */
     --accent-gradient: linear-gradient(135deg, #6366f1 0%, #ec4899 100%);
     --accent-glow: rgba(99, 102, 241, 0.3);
     --logo-grad: linear-gradient(135deg, #f8fafc 0%, #94a3b8 100%);
@@ -33,7 +35,7 @@
     --btn-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
 
     color-scheme: dark;
-    --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-smooth: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
 }
 
 [data-theme="light"] {
@@ -43,6 +45,9 @@
     --text-muted: #64748b;
     --accent-primary: #4f46e5;
     --accent-secondary: #db2777;
+    --accent-orange: #d97706;
+    --accent-red: #dc2626;
+    --accent-teal: #0d9488;
     --accent-gradient: linear-gradient(135deg, #4f46e5 0%, #db2777 100%);
     --accent-glow: rgba(79, 70, 229, 0.1);
     --btn-finish-bg: linear-gradient(135deg, #34d399, #10b981);
@@ -156,13 +161,18 @@ body {
     align-items: center;
 }
 
-.main-content {
+.content {
     flex: 1;
-    padding: 0.5rem 0.75rem 1rem 0.75rem;
-    max-width: 1200px;
-    margin: 0 auto;
+    padding: 0.5rem 1.5rem 1.5rem 1.5rem;
     width: 100%;
     box-sizing: border-box;
+    margin: 0;
+}
+
+@media (min-width: 1024px) {
+    .content {
+        max-width: none !important;
+    }
 }
 
 header {
@@ -229,9 +239,9 @@ header p {
 
 .dashboard-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 1rem;
-    margin-bottom: 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
 }
 
 .stat-card {
@@ -756,9 +766,10 @@ select.form-control {
 }
 
 @media (max-width: 1024px) {
+    body { padding-bottom: 0 !important; }
     .sidebar { display: none !important; }
     .content { 
-        padding: 1.5rem 1rem 100px 1rem;
+        padding: 1.5rem 1rem 140px 1rem !important;
         width: 100% !important;
         max-width: 100vw;
         margin: 0 !important;
@@ -774,21 +785,40 @@ select.form-control {
         width: 40px !important;
         height: 40px !important;
         padding: 0 !important;
-        display: flex !important;
+        display: flex;
         align-items: center;
         justify-content: center;
+        transition: none !important;
+        transform: none !important;
+    }
+
+    header .glass:hover, header .glass:active {
+        transform: none !important;
+        background: var(--glass-bg) !important;
+        border-color: var(--glass-border) !important;
     }
     
     #themeToggleBtn {
-        position: absolute !important;
-        right: 0 !important;
-        top: 0 !important;
+        position: static !important; /* Let it sit in the flex container */
     }
 
-    header div[style*="absolute"] {
+    header div[style*="left: 0"] {
         position: absolute !important;
         left: 0 !important;
         top: 0 !important;
+    }
+
+    header div[style*="right: 0"] {
+        position: absolute !important;
+        right: 0 !important;
+        top: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.5rem !important;
+    }
+
+    #header-right-group > * {
+        position: static !important;
     }
     
     .dashboard-grid {
@@ -821,20 +851,50 @@ select.form-control {
     .bottom-nav {
         display: flex;
         position: fixed;
-        bottom: 5px;
-        left: 8px;
-        right: 8px;
-        height: 70px;
-        background: var(--sidebar-bg);
+        bottom: 12px;
+        left: 12px;
+        right: 12px;
+        height: 65px;
+        background: var(--glass-bg);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
         border: 1px solid var(--glass-border);
-        border-radius: 18px;
+        border-radius: 22px;
         padding: 0 0.5rem;
         justify-content: space-around;
         align-items: center;
-        box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3);
-        z-index: 1000;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        z-index: 9999999;
+        transition: transform 0.3s ease;
+    }
+
+    .bottom-nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 0.65rem;
+        font-weight: 700;
+        gap: 4px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        flex: 1;
+    }
+
+    .bottom-nav-item svg {
+        width: 22px;
+        height: 22px;
+        transition: transform 0.3s ease;
+    }
+
+    .bottom-nav-item.active {
+        color: var(--accent-primary);
+    }
+
+    .bottom-nav-item.active svg {
+        transform: translateY(-2px);
+        filter: drop-shadow(0 0 8px var(--accent-primary));
     }
 
     .bottom-nav-floor {
@@ -845,27 +905,110 @@ select.form-control {
         right: 0;
         height: 25px;
         background: var(--bg-color);
-        z-index: 999;
+        z-index: 100;
         pointer-events: none;
     }
-
-    .bottom-nav-item {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 4px;
-        color: var(--text-muted);
-        text-decoration: none;
-    }
-
-    .bottom-nav-item.active {
-        color: var(--accent-primary);
-    }
-
-    .bottom-nav-icon { font-size: 1.4rem; }
-    .bottom-nav-label { font-size: 0.65rem; font-weight: 700; }
-
+    
     .history-controls { flex-direction: column !important; gap: 1rem !important; }
     .toggle-group { width: 100%; display: flex; }
     .toggle-group button { flex: 1; }
+}
+/* ══════════════════════════════════════════════
+   PREMIUM TIMER OVERHAUL
+   ══════════════════════════════════════════════ */
+.timer-container {
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 2.5rem 2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.timer-display-circle {
+    position: relative;
+    width: 250px;
+    height: 250px;
+    margin: 0 auto 2rem auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.03);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 
+        0 0 30px rgba(99, 102, 241, 0.1),
+        inset 0 0 20px rgba(99, 102, 241, 0.05);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.timer-display-circle.active {
+    border-color: var(--accent-primary);
+    box-shadow: 
+        0 0 40px rgba(99, 102, 241, 0.2),
+        inset 0 0 30px rgba(99, 102, 241, 0.1);
+}
+
+.timer-time-text {
+    font-size: 4.5rem;
+    font-weight: 800;
+    margin: 0;
+    font-variant-numeric: tabular-nums;
+    background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -2px;
+}
+
+.white-theme {
+    .timer-time-text {
+        background: linear-gradient(135deg, var(--accent-primary) 0%, #4338ca 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .timer-display-circle {
+        background: rgba(0, 0, 0, 0.02);
+        border-color: rgba(0, 0, 0, 0.05);
+        box-shadow: 0 0 30px rgba(99, 102, 241, 0.05);
+    }
+}
+
+.timer-presets-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 2.5rem;
+}
+
+.timer-section-label {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: 700;
+    display: block;
+}
+
+.timer-input-group {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    align-items: center;
+    margin-top: 1rem;
+}
+
+.timer-input-group input {
+    width: 70px !important;
+    height: 45px;
+    text-align: center;
+    font-weight: 600;
+    border-radius: 12px;
+}
+
+.timer-control-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2.5rem;
 }
