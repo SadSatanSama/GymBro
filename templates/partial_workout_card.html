@@ -1,9 +1,9 @@
-<div class="workout-card glass" data-date="{{ workout.raw_date }}">
-    <div class="workout-header">
+<div class="workout-card glass" data-date="{{ workout.raw_date }}" style="border-radius: 20px; margin-bottom: 1.2rem; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid var(--glass-border);">
+    <div class="workout-header" style="padding: 1.2rem 1.2rem 0.8rem 1.2rem;">
         <div>
-            <div class="workout-date">{{ workout.display_date }}</div>
-            <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.2rem;">
-                <span class="workout-category-tag" style="color: var(--accent-primary); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; background: rgba(99, 102, 241, 0.1); padding: 2px 8px; border-radius: 4px;">{{ workout.category }}</span>
+            <div class="workout-date" style="font-weight: 800; font-size: 1.1rem; color: var(--text-main); letter-spacing: -0.02em;">{{ workout.display_date }}</div>
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.3rem;">
+                <span class="workout-category-tag" style="background: var(--accent-gradient); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; border: 1px solid rgba(99, 102, 241, 0.2); padding: 2px 10px; border-radius: 20px;">{{ workout.category }}</span>
                 {% if workout.category == 'Uncategorized' %}
                 <button data-workout-id="{{ workout.id }}" onclick="editCategory(this)" style="background: none; border: none; cursor: pointer; opacity: 0.5; padding: 0; display: flex; color: var(--text-muted);" title="Add a category">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -21,12 +21,12 @@
         </button>
     </div>
     
-    <div class="exercises-container">
+    <div class="exercises-container" style="padding: 0 1.2rem 1.2rem 1.2rem;">
         {% for ex_name, stats in workout.exercises.items() %}
-        <div class="exercise-group">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.4rem;">
-                <div class="exercise-pill">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6.5 6.5 11 11"/><path d="m21 21-4.5-4.5"/><path d="m3 3 4.5 4.5"/><path d="m18 6 3-3"/><path d="m18 18 3 3"/><path d="m6 18-3 3"/><path d="m6 6-3-3"/><path d="M11 6.5a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z"/><path d="M17 12.5a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z"/><path d="M11 17.5a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z"/><path d="M7 12.5a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z"/><path d="M21 12.5a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z"/><path d="M17 6.5a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z"/></svg>
+        <div class="exercise-group" style="margin-top: 1rem; background: rgba(255,255,255,0.02); padding: 0.75rem; border-radius: 14px; border: 1px solid rgba(255,255,255,0.03);">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.2rem;">
+                <div class="exercise-pill" style="font-weight: 700; color: var(--text-main); font-size: 0.95rem;">
+                    <span style="color: var(--accent-primary); margin-right: 6px; opacity: 0.8;">•</span>
                     {{ ex_name }}
                 </div>
                 
@@ -69,9 +69,9 @@
     </div>
     
     {% if workout.notes %}
-    <div style="margin-top: 0.5rem; padding: 0.5rem 0.8rem; background: rgba(255,255,255,0.03); border-radius: 8px; font-size: 0.8rem; color: var(--text-muted); border-left: 2px solid var(--accent-primary);">
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px; opacity: 0.5;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-        {{ workout.notes }}
+    <div style="margin: 0 1.2rem 1.2rem 1.2rem; padding: 0.8rem 1rem; background: rgba(99, 102, 241, 0.03); border-radius: 12px; font-size: 0.85rem; color: var(--text-muted); border-left: 3px solid var(--accent-primary); display: flex; align-items: flex-start; gap: 10px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-top: 2px; opacity: 0.6;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span style="font-style: italic; line-height: 1.4;">{{ workout.notes }}</span>
     </div>
     {% endif %}
 </div>

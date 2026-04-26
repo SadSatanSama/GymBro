@@ -7,7 +7,7 @@
 {% block subheader %}Record your sets for today.{% endblock %}
 
 {% block content %}
-<div class="glass" style="max-width: 600px; margin: 0 auto;">
+<div class="glass" style="max-width: 600px; margin: 0 auto; border-radius: 24px; padding: 2rem; border: 1px solid var(--glass-border);">
     <form action="/log" method="post" id="workoutForm">
         <div class="form-row">
             <div class="form-group flex-1">
@@ -40,9 +40,9 @@
                 style="cursor: pointer;">
         </div>
 
-        <div class="set-section-header">
-            <h3>Set Details</h3>
-            <span id="setCounterBadge" class="badge-set">1st Set</span>
+        <div class="set-section-header" style="border-bottom: 1px solid var(--glass-border); padding-bottom: 0.8rem; margin-bottom: 1.5rem;">
+            <h3 style="font-weight: 800; letter-spacing: -0.02em;">Set Details</h3>
+            <span id="setCounterBadge" class="badge-set" style="background: var(--accent-gradient); box-shadow: var(--accent-shadow);">1st Set</span>
         </div>
 
         <div class="form-group">
@@ -61,10 +61,10 @@
             <textarea id="notes" name="notes" class="form-control" rows="3" placeholder="How did it feel?"></textarea>
         </div>
 
-        <div class="form-actions-row">
-            <button type="button" class="btn-finish" onclick="finishWorkout()">Finish</button>
-            <button type="submit" class="btn-primary" id="addSetBtn">+ Add Set</button>
-            <button type="button" class="btn-clear" onclick="clearSet()">Clear</button>
+        <div class="form-actions-row" style="margin-top: 2rem; gap: 0.8rem;">
+            <button type="button" class="btn-finish" onclick="finishWorkout()" style="background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: var(--text-main); font-weight: 700; border-radius: 14px;">Finish</button>
+            <button type="submit" class="btn-primary" id="addSetBtn" style="background: var(--accent-gradient); box-shadow: var(--accent-shadow); font-weight: 800; border-radius: 14px;">+ Add Set</button>
+            <button type="button" class="btn-clear" onclick="clearSet()" style="background: rgba(239, 68, 68, 0.1); color: var(--accent-red); font-weight: 700; border-radius: 14px; border: none;">Clear</button>
         </div>
 
         <div id="toastMessage"
@@ -75,10 +75,10 @@
 
 <!-- Exercise Selection Modal -->
 <div id="exerciseModal" class="modal-overlay">
-    <div class="modal-content glass">
-        <div class="modal-header">
-            <h2>Select Exercise</h2>
-            <button type="button" class="close-btn" onclick="closeModal()">✕</button>
+    <div class="modal-content glass" style="border-radius: 28px; border: 1px solid rgba(255,255,255,0.1); overflow: hidden;">
+        <div class="modal-header" style="background: var(--accent-gradient); padding: 1.5rem 2rem;">
+            <h2 style="color: #fff; font-weight: 800; letter-spacing: -0.02em;">Select Exercise</h2>
+            <button type="button" class="close-btn" onclick="closeModal()" style="color: #fff; opacity: 0.8;">✕</button>
         </div>
         <div style="padding: 1rem 2rem 0 2rem;">
             <input type="text" id="exerciseSearch" class="form-control" placeholder="Search any exercise..."

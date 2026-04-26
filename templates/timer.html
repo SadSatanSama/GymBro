@@ -7,7 +7,7 @@
 {% block subheader %}Optimize your recovery between sets.{% endblock %}
 
 {% block content %}
-<div class="timer-container glass">
+<div class="timer-container glass" style="border-radius: 28px; padding: 2.5rem; border: 1px solid var(--glass-border);">
     
     <!-- Circular Display -->
     <div id="timerCircle" class="timer-display-circle">
@@ -15,17 +15,17 @@
     </div>
 
     <!-- Alarm Toggle -->
-    <div style="display: flex; justify-content: center; align-items: center; gap: 0.75rem; margin-bottom: 2rem;">
-        <label class="glass" style="display: flex; align-items: center; gap: 0.5rem; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.85rem; border: 1px solid var(--glass-border);">
-            <input type="checkbox" id="muteToggle" style="width: 16px; height: 16px; accent-color: var(--accent-primary);">
-            <span style="color: var(--text-muted); font-weight: 600;">Silent Mode</span>
+    <div style="display: flex; justify-content: center; align-items: center; gap: 0.75rem; margin-bottom: 2.5rem;">
+        <label class="glass" style="display: flex; align-items: center; gap: 0.75rem; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-size: 0.9rem; border: 1px solid var(--glass-border); transition: all 0.3s;">
+            <input type="checkbox" id="muteToggle" style="width: 18px; height: 18px; accent-color: var(--accent-primary);">
+            <span style="color: var(--text-main); font-weight: 700;">Silent Mode</span>
         </label>
     </div>
 
     <!-- Controls -->
-    <div class="timer-control-buttons">
-        <button id="btnStart" class="btn-primary" onclick="toggleTimer()" style="flex: 2; height: 55px; font-size: 1.1rem; font-weight: 700;">Start</button>
-        <button class="glass-btn" onclick="resetTimer()" style="flex: 1; height: 55px; font-weight: 700;">Reset</button>
+    <div class="timer-control-buttons" style="gap: 1rem; margin-bottom: 2.5rem;">
+        <button id="btnStart" class="btn-primary" onclick="toggleTimer()" style="flex: 2; height: 60px; font-size: 1.2rem; font-weight: 800; border-radius: 16px; background: var(--accent-gradient); box-shadow: var(--accent-shadow);">Start</button>
+        <button class="glass-btn" onclick="resetTimer()" style="flex: 1; height: 60px; font-weight: 800; border-radius: 16px; font-size: 1.1rem;">Reset</button>
     </div>
 
     <!-- Quick Presets -->
