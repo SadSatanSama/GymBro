@@ -1,29 +1,18 @@
 const CACHE_NAME = 'gymbro-v135';
 const ASSETS = [
   '/',
-  '/log',
-  '/history',
-  '/ask',
-  '/settings',
-  '/timer',
-  '/offline',
   '/static/index.css',
-  '/static/manifest.json',
-  'https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap',
-  'https://cdn.jsdelivr.net/npm/chart.js'
+  '/static/logo.png',
+  '/manifest.json'
 ];
 
-// Install: Cache everything immediately
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(ASSETS);
-    })
+    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
   );
   self.skipWaiting();
 });
 
-// Activate: Cleanup old caches
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys => {
@@ -33,51 +22,23 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
-// Fetch: Smart Strategy
-// - Navigation (Pages): Network-First (Show latest data if online)
-// - Assets (CSS/JS): Stale-While-Revalidate (Load fast, update background)
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
-
-  const url = new URL(event.request.url);
-
-  // Strategy for Navigation (HTML Pages)
-  if (event.request.mode === 'navigate') {
-    event.respondWith(
-      caches.open('gymbro-flags').then(flagCache => flagCache.match('/offline-mode-active'))
-        .then(isForcedOffline => {
-          // If "Always Offline" is enabled in settings, bypass network immediately
-          if (isForcedOffline) {
-            return caches.match(event.request) || caches.match('/offline');
-          }
-          
-          // Normal Network-First strategy
-          return fetch(event.request)
-            .then(networkResponse => {
-              return caches.open(CACHE_NAME).then(cache => {
-                cache.put(event.request, networkResponse.clone());
-                return networkResponse;
-              });
-            })
-            .catch(() => {
-              return caches.match(event.request) || caches.match('/offline');
-            });
-        })
-    );
-    return;
-  }
-
-  // Strategy for Assets (CSS, JS, Fonts)
+  
   event.respondWith(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.match(event.request).then(cachedResponse => {
-        const fetchedResponse = fetch(event.request).then(networkResponse => {
-          cache.put(event.request, networkResponse.clone());
-          return networkResponse;
-        }).catch(() => {
-           // Silent fail for non-critical assets
-        });
-        return cachedResponse || fetchedResponse;
+    caches.match(event.request).then(response => {
+      return response || fetch(event.request).then(networkResponse => {
+        // Cache new assets on the fly
+        if (networkResponse.status === 200) {
+            const clone = networkResponse.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+        }
+        return networkResponse;
+      }).catch(() => {
+        // Simple offline fallback
+        if (event.request.mode === 'navigate') {
+            return caches.match('/');
+        }
       });
     })
   );

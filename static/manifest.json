@@ -1,84 +1,10 @@
 {
   "name": "GymBro Tracker",
   "short_name": "GymBro",
-  "description": "A premium, distraction-free gym tracker with AI coaching and offline sync.",
-  "id": "/?source=pwa",
   "start_url": "/",
-  "scope": "/",
-  "lang": "en",
-  "dir": "ltr",
   "display": "standalone",
-  "display_override": ["standalone", "window-controls-overlay", "tabbed", "minimal-ui"],
-  "edge_side_panel": {
-    "preferred_width": 400
-  },
   "background_color": "#0a0a0c",
   "theme_color": "#0a0a0c",
-  "orientation": "portrait",
-  "categories": ["health", "fitness", "sports"],
-  "iarc_rating_id": "e58c174a-71d3-44eb-82c8-89c56f8f5334",
-  "prefer_related_applications": false,
-  "launch_handler": {
-    "client_mode": "focus-existing"
-  },
-  "file_handlers": [
-    {
-      "action": "/import",
-      "accept": {
-        "text/csv": [".csv"],
-        "application/json": [".json"]
-      },
-      "icons": [
-        {
-          "src": "/static/logo.png",
-          "sizes": "512x512",
-          "type": "image/png"
-        }
-      ],
-      "launch_type": "single-client"
-    }
-  ],
-  "shortcuts": [
-    {
-      "name": "Log Workout",
-      "short_name": "Log",
-      "url": "/log",
-      "icons": [{ "src": "/static/logo.png", "sizes": "512x512" }]
-    },
-    {
-      "name": "Workout History",
-      "short_name": "History",
-      "url": "/history",
-      "icons": [{ "src": "/static/logo.png", "sizes": "512x512" }]
-    }
-  ],
-  "widgets": [
-    {
-      "name": "GymBro Daily",
-      "short_name": "Daily",
-      "description": "Quick view of your daily workout progress.",
-      "tag": "gymbro-daily",
-      "template": "gymbro-widget",
-      "ms_ac_template": "gymbro-widget-ms",
-      "data": "/static/manifest.json",
-      "type": "application/json",
-      "screenshots": [
-        {
-          "src": "/static/logo.png",
-          "sizes": "512x512",
-          "type": "image/png",
-          "label": "Daily progress widget"
-        }
-      ],
-      "icons": [
-        {
-          "src": "/static/logo.png",
-          "sizes": "512x512",
-          "type": "image/png"
-        }
-      ]
-    }
-  ],
   "icons": [
     {
       "src": "/static/logo.png",
@@ -98,15 +24,13 @@
       "src": "/static/logo.png",
       "sizes": "512x512",
       "type": "image/png",
-      "form_factor": "narrow",
-      "label": "GymBro Dashboard"
+      "form_factor": "narrow"
     },
     {
       "src": "/static/logo.png",
       "sizes": "512x512",
       "type": "image/png",
-      "form_factor": "wide",
-      "label": "GymBro Desktop View"
+      "form_factor": "wide"
     }
   ]
 }
