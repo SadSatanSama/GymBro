@@ -312,19 +312,91 @@
         container.style.display = 'block';
         list.innerHTML = '';
         
-        // Group by exercise name just for visual clarity
-        const summary = {};
+        // Group queue by Date + Category
+        const grouped = {};
         queue.forEach(item => {
-            const name = item.data.exercise_name;
-            if (!summary[name]) summary[name] = 0;
-            summary[name]++;
+            const dateStr = item.data.workout_date;
+            const category = item.data.workout_category || "Uncategorized";
+            const key = `${dateStr}_${category}`;
+            
+            if (!grouped[key]) {
+                grouped[key] = {
+                    date: dateStr,
+                    category: category,
+                    exercises: {}
+                };
+            }
+            
+            const exName = item.data.exercise_name;
+            if (!grouped[key].exercises[exName]) {
+                grouped[key].exercises[exName] = { max_weight: 0, max_reps: 0, sets: [] };
+            }
+            
+            const w = parseFloat(item.data.weight) || 0;
+            const r = parseInt(item.data.reps) || 0;
+            grouped[key].exercises[exName].sets.push({ weight: w, reps: r });
+            grouped[key].exercises[exName].max_weight = Math.max(grouped[key].exercises[exName].max_weight, w);
+            grouped[key].exercises[exName].max_reps = Math.max(grouped[key].exercises[exName].max_reps, r);
         });
 
-        Object.keys(summary).forEach(name => {
-            const row = document.createElement('div');
-            row.style.cssText = "display: flex; justify-content: space-between; font-size: 0.9rem; padding: 0.5rem; border-bottom: 1px solid rgba(255,165,0,0.1); color: var(--text-muted);";
-            row.innerHTML = `<span>${name}</span> <span style="color: var(--accent-orange); font-weight: 600;">${summary[name]} set(s) pending</span>`;
-            list.appendChild(row);
+        // Render each group as a "Pseudo-Card"
+        const weightUnit = localStorage.getItem('weightUnit') || 'kg';
+        const distanceUnit = localStorage.getItem('distanceUnit') || 'km';
+
+        Object.values(grouped).forEach(workout => {
+            const isCardio = workout.category === 'Cardio' || workout.category === 'HIIT';
+            const card = document.createElement('div');
+            card.className = "workout-card glass pending-card";
+            card.style.cssText = "margin-bottom: 1rem; padding: 1rem; border: 1px solid rgba(255,165,0,0.3); position: relative; opacity: 0.9;";
+            
+            // Format date for display
+            const d = new Date(workout.date);
+            const displayDate = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+
+            let exercisesHtml = '';
+            Object.entries(workout.exercises).forEach(([exName, stats], exIdx) => {
+                let setsHtml = '';
+                stats.sets.forEach((s, sIdx) => {
+                    setsHtml += `
+                        <div class="set-row" style="display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem; color: var(--text-muted); padding: 4px 1rem 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <div style="display: flex; gap: 0.8rem; align-items: center;">
+                                <span style="opacity: 0.5; width: 35px;">S${sIdx + 1}</span>
+                                <span>${s.weight}${isCardio ? distanceUnit : weightUnit} ${isCardio ? 'for' : '×'} ${s.reps}${isCardio ? 'min' : ''}</span>
+                            </div>
+                        </div>`;
+                });
+
+                exercisesHtml += `
+                    <div class="exercise-group">
+                        <div class="exercise-summary-row" style="display: flex; justify-content: space-between; align-items: center; padding: 0.4rem 0; border-bottom: 1px solid var(--glass-border); gap: 1rem;">
+                            <div style="display: flex; align-items: center; gap: 0.4rem; flex: 1; min-width: 0;">
+                                <button class="expand-btn" onclick="toggleSets(this)" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.7rem; padding: 2px; transition: transform 0.2s; flex-shrink: 0;">▶</button>
+                                <span style="font-weight: 600; color: var(--text-main); word-break: break-word; line-height: 1.2; font-size: 0.95rem;">${exName}</span>
+                            </div>
+                            <div style="display: flex; flex-direction: column; align-items: flex-end; line-height: 1.1;">
+                                <span style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600;">${stats.max_weight} ${isCardio ? distanceUnit : weightUnit}</span>
+                                <small style="color: var(--text-muted); opacity: 0.5; font-size: 0.7rem;">${isCardio ? 'Best' : 'Max'}</small>
+                            </div>
+                        </div>
+                        <div class="exercise-sets-dropdown" style="display: none; padding: 0.3rem 0 0.3rem 1.2rem; background: var(--dropdown-bg); border-radius: 0 0 8px 8px;">
+                            ${setsHtml}
+                        </div>
+                    </div>`;
+            });
+
+            card.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.5rem;">
+                    <div>
+                        <h3 style="margin: 0; font-size: 1.1rem;">${displayDate}</h3>
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.2rem;">
+                            <span style="color: var(--accent-orange); font-size: 0.85rem; font-weight: 600;">${workout.category}</span>
+                            <span style="background: var(--accent-orange); color: white; font-size: 0.65rem; padding: 1px 6px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 800;">Pending Sync</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="exercises-container">${exercisesHtml}</div>
+            `;
+            list.appendChild(card);
         });
     }
 

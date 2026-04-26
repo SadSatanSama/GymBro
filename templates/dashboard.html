@@ -162,7 +162,7 @@
         console.log("Dashboard: Syncing", queue.length, "pending sets into view...");
         
         const weightUnit = localStorage.getItem('weightUnit') || 'kg';
-        let extraWeight = 0;
+        let extraVolume = 0;
         let extraCardioDist = 0;
         let extraCardioMin = 0;
         let pendingDates = new Set();
@@ -171,6 +171,7 @@
         let todayPendingWeight = 0;
         let todayPendingReps = 0;
         let todayPendingCardio = 0;
+        let todayPendingVolume = 0;
 
         queue.forEach(item => {
             const data = item.data;
@@ -182,17 +183,19 @@
                 extraCardioDist += w;
                 extraCardioMin += r;
             } else {
-                extraWeight += (w * r);
+                extraVolume += (w * r);
             }
 
             pendingDates.add(data.workout_date);
 
             // Tracking for chart (today only for simplicity)
             if (data.workout_date === today) {
-                if (isCardio) todayPendingCardio = Math.max(todayPendingCardio, r);
-                else {
+                if (isCardio) {
+                    todayPendingCardio = Math.max(todayPendingCardio, r);
+                } else {
                     todayPendingWeight = Math.max(todayPendingWeight, w);
                     todayPendingReps = Math.max(todayPendingReps, r);
+                    todayPendingVolume += (w * r);
                 }
             }
         });
@@ -200,7 +203,7 @@
         // Update Stat Cards
         const volumeEl = document.getElementById('stat-total-volume');
         const baseVolume = parseFloat(volumeEl.dataset.baseValue);
-        volumeEl.innerText = `${(baseVolume + extraWeight).toFixed(1)} ${weightUnit}`;
+        volumeEl.innerText = `${(baseVolume + extraVolume).toFixed(1)} ${weightUnit}`;
         volumeEl.style.color = "var(--accent-orange)"; // Highlight pending
 
         const cardioEl = document.getElementById('stat-total-cardio');
@@ -217,10 +220,15 @@
 
         // Update Chart for today
         const lastIdx = dashboardData.weeklyLabels.length - 1;
-        if (dashboardData.weeklyLabels[lastIdx].includes(new Date().getDate())) {
+        // Check if the last label represents "Today"
+        const todayDay = new Date().getDate();
+        if (dashboardData.weeklyLabels[lastIdx].includes(todayDay)) {
             dashboardData.weeklyWeight[lastIdx] = Math.max(dashboardData.weeklyWeight[lastIdx], todayPendingWeight);
             dashboardData.weeklyReps[lastIdx] = Math.max(dashboardData.weeklyReps[lastIdx], todayPendingReps);
             dashboardData.weeklyCardio[lastIdx] = Math.max(dashboardData.weeklyCardio[lastIdx], todayPendingCardio);
+            dashboardData.weeklyVolume[lastIdx] += todayPendingVolume;
+            
+            // Re-render the chart with new data
             setChartMode(sessionStorage.getItem("dashboardChartMode") || 'weight');
         }
     }
