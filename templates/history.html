@@ -362,10 +362,14 @@
                             <div style="display: flex; align-items: center; gap: 0.4rem; flex: 1; min-width: 0;">
                                 <button class="expand-btn" onclick="toggleSets(this)" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.7rem; padding: 2px; transition: transform 0.2s; flex-shrink: 0;">▶</button>
                                 <span style="font-weight: 600; color: var(--text-main); word-break: break-word; line-height: 1.2; font-size: 0.95rem;">${exName}</span>
+                                <span style="background: rgba(255, 165, 0, 0.1); color: var(--accent-orange); font-size: 0.6rem; padding: 1px 4px; border-radius: 4px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid rgba(255, 165, 0, 0.2); flex-shrink: 0;">Pending</span>
                             </div>
-                            <div style="display: flex; flex-direction: column; align-items: flex-end; line-height: 1.1;">
-                                <span style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600;">${stats.max_weight} ${isCardio ? distanceUnit : weightUnit}</span>
-                                <small style="color: var(--text-muted); opacity: 0.5; font-size: 0.7rem;">${isCardio ? 'Best' : 'Max'}</small>
+                            <div style="display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0;">
+                                <div style="display: flex; flex-direction: column; align-items: flex-end; line-height: 1.1;">
+                                    <span style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600;">${stats.max_weight} ${isCardio ? distanceUnit : weightUnit}</span>
+                                    <small style="color: var(--text-muted); opacity: 0.5; font-size: 0.7rem;">${isCardio ? 'Best' : 'Max'}</small>
+                                </div>
+                                <button onclick="deletePending('${workout.date}', '${workout.category}', '${exName}')" style="background: rgba(255, 165, 0, 0.1); border: none; color: var(--accent-orange); cursor: pointer; width: 20px; height: 20px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem;">✕</button>
                             </div>
                         </div>
                         <div class="exercise-sets-dropdown" style="display: none; padding: 0.3rem 0 0.3rem 1.2rem; background: var(--dropdown-bg); border-radius: 0 0 8px 8px;">
@@ -380,14 +384,43 @@
                         <h3 style="margin: 0; font-size: 1.1rem;">${displayDate}</h3>
                         <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.2rem;">
                             <span style="color: var(--accent-orange); font-size: 0.85rem; font-weight: 600;">${workout.category}</span>
-                            <span style="background: var(--accent-orange); color: white; font-size: 0.65rem; padding: 1px 6px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 800;">Pending Sync</span>
                         </div>
                     </div>
+                    <button onclick="deletePending('${workout.date}', '${workout.category}')" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; color: var(--accent-orange);" title="Delete pending workout">
+                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" fill="none">
+                            <path d="M10 4h4v2h-4z" /><path d="M4 6h16v2H4z" /><path d="M5 8h14v13H5z" /><path d="M7.5 11h2v7h-2z" /><path d="M11 11h2v7h-2z" /><path d="M14.5 11h2v7h-2z" />
+                        </svg>
+                    </button>
                 </div>
                 <div class="exercises-container">${exercisesHtml}</div>
             `;
             list.appendChild(card);
         });
+    }
+
+    function deletePending(date, category, exName = null) {
+        const msg = exName ? `Remove pending ${exName}?` : `Delete this entire pending workout?`;
+        if (!confirm(msg)) return;
+
+        let queue = JSON.parse(localStorage.getItem('syncQueue') || '[]');
+        
+        // Filter out matching items
+        queue = queue.filter(item => {
+            const d = item.data;
+            const dateMatch = d.workout_date === date;
+            const catMatch = (d.workout_category || "Uncategorized") === category;
+            const exMatch = !exName || d.exercise_name === exName;
+            
+            // Return true to KEEP the item, false to REMOVE it
+            return !(dateMatch && catMatch && exMatch);
+        });
+
+        localStorage.setItem('syncQueue', JSON.stringify(queue));
+        showToast('🗑️ Pending log removed.');
+        displayPendingLogs();
+        
+        // Update dashboard if we're on a multi-tab view, though usually we're just on history
+        window.dispatchEvent(new Event('storage')); 
     }
 
     // --- Init ---
