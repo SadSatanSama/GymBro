@@ -61,10 +61,10 @@
             <textarea id="notes" name="notes" class="form-control" rows="3" placeholder="How did it feel?"></textarea>
         </div>
 
-        <div class="form-actions-row" style="margin-top: 2rem; gap: 0.8rem;">
-            <button type="button" class="btn-finish" onclick="finishWorkout()" style="background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: var(--text-main); font-weight: 700; border-radius: 14px;">Finish</button>
-            <button type="submit" class="btn-primary" id="addSetBtn" style="background: var(--accent-gradient); box-shadow: var(--accent-shadow); font-weight: 800; border-radius: 14px;">+ Add Set</button>
-            <button type="button" class="btn-clear" onclick="clearSet()" style="background: rgba(239, 68, 68, 0.1); color: var(--accent-red); font-weight: 700; border-radius: 14px; border: none;">Clear</button>
+        <div class="form-actions-row" style="margin-top: 2rem; gap: 0.8rem; display: flex; align-items: stretch;">
+            <button type="button" class="btn-finish" onclick="finishWorkout()" style="flex: 1; height: 50px; background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.3); color: #10b981; font-weight: 800; border-radius: 16px; transition: all 0.3s; cursor: pointer;">Finish</button>
+            <button type="submit" class="btn-primary" id="addSetBtn" style="flex: 1.5; height: 50px; background: var(--accent-gradient); box-shadow: var(--accent-shadow); font-weight: 800; border-radius: 16px; border: none; color: white; cursor: pointer;">+ Add Set</button>
+            <button type="button" class="btn-clear" onclick="clearSet()" style="flex: 1; height: 50px; background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; font-weight: 800; border-radius: 16px; transition: all 0.3s; cursor: pointer;">Clear</button>
         </div>
 
         <div id="toastMessage"
