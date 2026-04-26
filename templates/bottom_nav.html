@@ -1,21 +1,21 @@
 <div class="bottom-nav">
-    <a href="/" class="bottom-nav-item {% block nav_home_m %}{% endblock %}" title="Home">
+    <a href="/" class="bottom-nav-item {{ 'active' if active_page == 'home' else '' }}" title="Home">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
         <span>Home</span>
     </a>
-    <a href="/log" class="bottom-nav-item {% block nav_log_m %}{% endblock %}" title="Log">
+    <a href="/log" class="bottom-nav-item {{ 'active' if active_page == 'log' else '' }}" title="Log">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.4 14.4 9.6 9.6"/><path d="M18.657 21.485a2 2 0 1 1-2.829-2.828l-1.767 1.768a2 2 0 1 1-2.829-2.829l6.364-6.364a2 2 0 1 1 2.829 2.829l-1.768 1.767a2 2 0 1 1 2.828 2.829z"/><path d="m21.5 21.5-1.4-1.4"/><path d="M3.9 3.9 2.5 2.5"/><path d="M6.404 12.768a2 2 0 1 1-2.829-2.829l1.768-1.767a2 2 0 1 1-2.828-2.829l2.828-2.828a2 2 0 1 1 2.829 2.828l1.767-1.768a2 2 0 1 1 2.829 2.829z"/></svg>
         <span>Log</span>
     </a>
-    <a href="/history" class="bottom-nav-item {% block nav_history_m %}{% endblock %}" title="History">
+    <a href="/history" class="bottom-nav-item {{ 'active' if active_page == 'history' else '' }}" title="History">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
         <span>History</span>
     </a>
-    <a href="/timer" class="bottom-nav-item {% block nav_timer_m %}{% endblock %}" title="Timer">
+    <a href="/timer" class="bottom-nav-item {{ 'active' if active_page == 'timer' else '' }}" title="Timer">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/></svg>
         <span>Timer</span>
     </a>
-    <a href="/ask" class="bottom-nav-item {% block nav_ask_m %}{% endblock %}" title="Ask AI">
+    <a href="/ask" class="bottom-nav-item {{ 'active' if active_page == 'ask' else '' }}" title="Ask AI">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
         <span>Ask AI</span>
     </a>
