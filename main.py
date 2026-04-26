@@ -173,13 +173,7 @@ async def dashboard(
     
     today = date.today()
     
-    # --- ACTIVE DATABASE SCRUB ---
-    # Find any empty workouts (no sets) and delete them to prevent "ghost" dates
-    all_user_workouts = db.query(models.Workout).filter(models.Workout.user_id == current_user.id).all()
-    for w in all_user_workouts:
-        if not w.sets:
-            db.delete(w)
-    db.commit()
+
 
     # --- Unified Data Retrieval ---
     # Re-fetch cleaned workouts
