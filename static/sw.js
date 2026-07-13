@@ -1,9 +1,10 @@
-const CACHE_NAME = 'gymbro-v138';
+const CACHE_NAME = 'gymbro-v139';
 const ASSETS = [
   '/',
   '/static/index.css',
   '/static/logo.png',
-  '/manifest.json'
+  '/static/logo-192.png',
+  '/static/manifest.json'
 ];
 
 self.addEventListener('install', event => {
@@ -58,7 +59,7 @@ self.addEventListener('fetch', event => {
             if (cachedRoot) return cachedRoot;
             return new Response(
               '<!DOCTYPE html><html><head><title>Offline - GymBro</title><meta name="viewport" content="width=device-width, initial-scale=1"></head><body style="background:#0b0f19;color:#fff;font-family:sans-serif;text-align:center;padding:2rem;"><h1>GymBro Offline</h1><p>Unable to connect to server. Please check your internet connection or try again shortly.</p><button onclick="location.reload()" style="padding:0.75rem 1.5rem;border-radius:12px;background:#6366f1;color:#fff;border:none;font-weight:bold;cursor:pointer;margin-top:1rem;">Retry</button></body></html>',
-              { headers: { 'Content-Type': 'text/html' }, status: 503 }
+              { headers: { 'Content-Type': 'text/html' }, status: 200 }
             );
         }
         return new Response('', { status: 408, statusText: 'Request timed out.' });
