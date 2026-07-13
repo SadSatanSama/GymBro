@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gymbro-v141';
+const CACHE_NAME = 'gymbro-v142';
 const OFFLINE_URL = '/static/offline.html';
 
 const ASSETS = [
@@ -14,7 +14,13 @@ self.addEventListener('install', event => {
   event.waitUntil(
     (async () => {
       const cache = await caches.open(CACHE_NAME);
-      await cache.addAll(ASSETS);
+      for (const asset of ASSETS) {
+        try {
+          await cache.add(asset);
+        } catch (e) {
+          console.warn('SW: Failed to cache on install:', asset, e);
+        }
+      }
     })()
   );
   self.skipWaiting();
@@ -52,11 +58,24 @@ self.addEventListener('fetch', event => {
             return preloadResponse;
           }
           const networkResponse = await fetch(event.request);
+          // Update cache with fresh navigation response
+          if (networkResponse && networkResponse.status === 200) {
+            const cache = await caches.open(CACHE_NAME);
+            cache.put(event.request, networkResponse.clone());
+          }
           return networkResponse;
         } catch (error) {
           const cache = await caches.open(CACHE_NAME);
-          const cachedResponse = await cache.match(OFFLINE_URL);
-          return cachedResponse;
+          // First try matching the exact navigated page in cache (e.g., homepage '/')
+          const cachedPage = await cache.match(event.request, { ignoreSearch: true });
+          if (cachedPage) return cachedPage;
+          // Fallback to cached root
+          const cachedRoot = await cache.match('/', { ignoreSearch: true });
+          if (cachedRoot) return cachedRoot;
+          // Finally fallback to dedicated offline HTML
+          const offlinePage = await cache.match(OFFLINE_URL);
+          if (offlinePage) return offlinePage;
+          return new Response('Offline', { status: 200, headers: { 'Content-Type': 'text/plain' } });
         }
       })()
     );
