@@ -77,7 +77,7 @@ async def get_assetlinks():
       "target": {
         "namespace": "android_app",
         "package_name": "com.onrender.gymbro_euvi.twa",
-        "sha256_cert_fingerprints": ["74:D7:6E:21:FF:2F:52:4F:C9:FC:1E:47:E0:6E:A0:DB:97:DD:15:74:26:BD:7E:E5:0F:6E:0A:8C:6C:8A:73:DC"]
+        "sha256_cert_fingerprints": ["A7:F5:50:2F:6A:CA:1B:BA:79:41:ED:67:D9:8D:1F:DA:29:6A:99:F1:66:D6:DE:7D:3E:9C:72:36:43:66:EF:FC"]
       }
     }]
 
