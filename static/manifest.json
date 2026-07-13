@@ -35,5 +35,34 @@
       "type": "image/png",
       "form_factor": "wide"
     }
-  ]
+  ],
+  "shortcuts": [
+    {
+      "name": "Log Workout",
+      "short_name": "Log",
+      "description": "Log a new workout set",
+      "url": "/log",
+      "icons": [{ "src": "/static/logo-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "AI Coach",
+      "short_name": "Coach",
+      "description": "Ask AI Coach for fitness advice",
+      "url": "/chat",
+      "icons": [{ "src": "/static/logo-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "History",
+      "short_name": "History",
+      "description": "View past workouts and progress",
+      "url": "/history",
+      "icons": [{ "src": "/static/logo-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  },
+  "edge_side_panel": {
+    "preferred_width": 400
+  }
 }
