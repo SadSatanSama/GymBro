@@ -486,14 +486,19 @@ header p {
 
 .toggle-group {
     display: flex;
+    flex-wrap: wrap;
     background: var(--glass-bg);
     padding: 3px;
     border-radius: 12px;
     border: 1px solid var(--glass-border);
+    gap: 3px;
+    width: 100%;
 }
 
 .toggle-btn {
-    padding: 0.5rem 1.2rem;
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 0.5rem 0.6rem;
     border: none;
     background: transparent;
     color: var(--text-muted);
@@ -502,6 +507,8 @@ header p {
     border-radius: 10px;
     cursor: pointer;
     transition: var(--transition-smooth);
+    text-align: center;
+    white-space: nowrap;
 }
 
 .toggle-btn.active {
@@ -1006,10 +1013,17 @@ select.form-control {
     .toggle-group {
         width: 100%;
         display: flex;
+        flex-wrap: wrap;
+        gap: 3px;
     }
 
-    .toggle-group button {
-        flex: 1;
+    .toggle-group button, .toggle-btn {
+        flex: 1 1 0;
+        min-width: 0;
+        padding: 0.42rem 0.35rem;
+        font-size: 0.78rem;
+        text-align: center;
+        white-space: nowrap;
     }
 }
 

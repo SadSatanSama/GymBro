@@ -86,11 +86,11 @@
             </div>
 
             <div class="chart-filters" style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin-top: 1.5rem; gap: 1rem; width: 100%;">
-                <div class="toggle-group" style="display: flex; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 10px; overflow: hidden; width: 100%; max-width: 400px;">
-                    <button id="btnChartVolume" class="toggle-btn active" onclick="setChartMode('volume')" style="flex: 1;" type="button">Volume</button>
-                    <button id="btnChartWeight" class="toggle-btn" onclick="setChartMode('weight')" style="flex: 1;" type="button">Weight</button>
-                    <button id="btnChartReps" class="toggle-btn" onclick="setChartMode('reps')" style="flex: 1;" type="button">Reps</button>
-                    <button id="btnChartCardio" class="toggle-btn" onclick="setChartMode('cardio')" style="flex: 1;" type="button">Cardio</button>
+                <div class="toggle-group" style="display: flex; flex-wrap: wrap; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 12px; width: 100%; max-width: 420px; gap: 3px; padding: 3px; box-sizing: border-box;">
+                    <button id="btnChartVolume" class="toggle-btn active" onclick="setChartMode('volume')" style="flex: 1 1 0; min-width: 0;" type="button">Volume</button>
+                    <button id="btnChartWeight" class="toggle-btn" onclick="setChartMode('weight')" style="flex: 1 1 0; min-width: 0;" type="button">Weight</button>
+                    <button id="btnChartReps" class="toggle-btn" onclick="setChartMode('reps')" style="flex: 1 1 0; min-width: 0;" type="button">Reps</button>
+                    <button id="btnChartCardio" class="toggle-btn" onclick="setChartMode('cardio')" style="flex: 1 1 0; min-width: 0;" type="button">Cardio</button>
                 </div>
 
                 <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; flex-wrap: wrap; width: 100%;">
