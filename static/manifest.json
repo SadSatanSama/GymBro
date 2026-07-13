@@ -1,13 +1,16 @@
 {
+  "id": "/",
   "name": "GymBro Tracker",
   "short_name": "GymBro",
+  "description": "Your ultimate AI-powered workout companion for logging sets, tracking personal records, and monitoring gym progress.",
   "start_url": "/",
   "display": "standalone",
+  "orientation": "any",
   "background_color": "#0a0a0c",
   "theme_color": "#0a0a0c",
   "icons": [
     {
-      "src": "/static/logo.png",
+      "src": "/static/logo-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
