@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gymbro-v143';
+const CACHE_NAME = 'gymbro-v144';
 const OFFLINE_URL = '/offline';
 
 const ASSETS = [
