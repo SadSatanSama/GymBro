@@ -8,7 +8,7 @@
   "lang": "en",
   "dir": "ltr",
   "display": "standalone",
-  "display_override": ["standalone", "minimal-ui"],
+  "display_override": ["standalone"],
   "orientation": "any",
   "categories": ["fitness", "health", "lifestyle"],
   "prefer_related_applications": false,
@@ -55,7 +55,7 @@
       "short_name": "Coach",
       "description": "Ask AI Coach for fitness advice",
       "url": "/chat",
-      "icons": [{ "src": "/static/logo-192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/static/logo-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "History",
