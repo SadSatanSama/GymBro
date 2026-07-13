@@ -96,6 +96,10 @@ async def get_offline():
     from fastapi.responses import FileResponse
     return FileResponse("static/offline.html", media_type="text/html")
 
+@app.get("/health")
+async def health_check():
+    return {"status": "ok"}
+
 def get_db():
     db = SessionLocal()
     try:
