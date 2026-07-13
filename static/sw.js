@@ -1,6 +1,9 @@
-const CACHE_NAME = 'gymbro-v140';
+const CACHE_NAME = 'gymbro-v141';
+const OFFLINE_URL = '/static/offline.html';
+
 const ASSETS = [
   '/',
+  OFFLINE_URL,
   '/static/index.css',
   '/static/logo.png',
   '/static/logo-192.png',
@@ -52,14 +55,8 @@ self.addEventListener('fetch', event => {
           return networkResponse;
         } catch (error) {
           const cache = await caches.open(CACHE_NAME);
-          const cachedResponse = await cache.match('/', { ignoreSearch: true });
-          if (cachedResponse) {
-            return cachedResponse;
-          }
-          return new Response(
-            '<!DOCTYPE html><html><head><title>Offline - GymBro</title><meta name="viewport" content="width=device-width, initial-scale=1"></head><body style="background:#0b0f19;color:#fff;font-family:sans-serif;text-align:center;padding:2rem;"><h1>GymBro Offline</h1><p>Unable to connect to server. Please check your internet connection or try again shortly.</p><button onclick="location.reload()" style="padding:0.75rem 1.5rem;border-radius:12px;background:#6366f1;color:#fff;border:none;font-weight:bold;cursor:pointer;margin-top:1rem;">Retry</button></body></html>',
-            { headers: { 'Content-Type': 'text/html' }, status: 200 }
-          );
+          const cachedResponse = await cache.match(OFFLINE_URL);
+          return cachedResponse;
         }
       })()
     );

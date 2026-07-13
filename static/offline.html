@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline - GymBro</title>
+    <link rel="stylesheet" href="/static/index.css">
+    <style>
+        body {
+            background: #0a0a0c;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        .offline-container {
+            max-width: 420px;
+            background: rgba(22, 22, 30, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 2.5rem 1.8rem;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+        }
+        .offline-icon {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+        }
+        h1 {
+            font-size: 1.6rem;
+            margin-bottom: 0.8rem;
+            color: #ffffff;
+        }
+        p {
+            color: #a0a0b0;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 1.8rem;
+        }
+        .retry-btn {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: #ffffff;
+            border: none;
+            padding: 0.85rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+        }
+        .retry-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6);
+        }
+    </style>
+</head>
+<body>
+    <div class="offline-container">
+        <div class="offline-icon">⚡</div>
+        <h1>You're Offline</h1>
+        <p>GymBro is currently in offline mode. Please check your internet connection to synchronize data or reload.</p>
+        <button class="retry-btn" onclick="location.reload()">Try Again</button>
+    </div>
+</body>
+</html>
