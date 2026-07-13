@@ -1,8 +1,7 @@
-const CACHE_NAME = 'gymbro-v142';
-const OFFLINE_URL = '/static/offline.html';
+const CACHE_NAME = 'gymbro-v143';
+const OFFLINE_URL = '/offline';
 
 const ASSETS = [
-  '/',
   OFFLINE_URL,
   '/static/index.css',
   '/static/logo.png',

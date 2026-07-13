@@ -91,6 +91,11 @@ async def get_manifest():
     from fastapi.responses import FileResponse
     return FileResponse("static/manifest.json", media_type="application/manifest+json")
 
+@app.get("/offline")
+async def get_offline():
+    from fastapi.responses import FileResponse
+    return FileResponse("static/offline.html", media_type="text/html")
+
 def get_db():
     db = SessionLocal()
     try:
