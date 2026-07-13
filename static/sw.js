@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gymbro-v137';
+const CACHE_NAME = 'gymbro-v138';
 const ASSETS = [
   '/',
   '/static/index.css',
@@ -38,7 +38,7 @@ self.addEventListener('fetch', event => {
   
   // Skip caching for external GitHub DB to prevent "poisoned" cache
   if (event.request.url.includes('githubusercontent.com')) {
-      return event.respondWith(fetch(event.request));
+      return;
   }
 
   event.respondWith(
@@ -51,12 +51,17 @@ self.addEventListener('fetch', event => {
             caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
         }
         return networkResponse;
-      }).catch(err => {
+      }).catch(async err => {
         console.log('SW: Fetch failed, check if fallback available:', err);
         if (event.request.mode === 'navigate') {
-            return caches.match('/');
+            const cachedRoot = await caches.match('/');
+            if (cachedRoot) return cachedRoot;
+            return new Response(
+              '<!DOCTYPE html><html><head><title>Offline - GymBro</title><meta name="viewport" content="width=device-width, initial-scale=1"></head><body style="background:#0b0f19;color:#fff;font-family:sans-serif;text-align:center;padding:2rem;"><h1>GymBro Offline</h1><p>Unable to connect to server. Please check your internet connection or try again shortly.</p><button onclick="location.reload()" style="padding:0.75rem 1.5rem;border-radius:12px;background:#6366f1;color:#fff;border:none;font-weight:bold;cursor:pointer;margin-top:1rem;">Retry</button></body></html>',
+              { headers: { 'Content-Type': 'text/html' }, status: 503 }
+            );
         }
-        return null;
+        return new Response('', { status: 408, statusText: 'Request timed out.' });
       });
     })
   );

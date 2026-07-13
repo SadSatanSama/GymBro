@@ -17,7 +17,10 @@ from pydantic import BaseModel
 import models
 import os
 from dotenv import load_dotenv
-import google.generativeai as genai
+try:
+    from google import genai
+except ImportError:
+    import google.generativeai as genai
 
 # Security Imports
 import bcrypt

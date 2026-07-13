@@ -3,7 +3,7 @@ uvicorn
 sqlalchemy
 jinja2
 python-multipart
-google-generativeai
+google-genai
 pydantic
 python-dotenv
 psycopg2-binary
