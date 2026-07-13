@@ -10,6 +10,8 @@
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui"],
   "orientation": "any",
+  "categories": ["fitness", "health", "lifestyle"],
+  "prefer_related_applications": false,
   "background_color": "#0a0a0c",
   "theme_color": "#0a0a0c",
   "icons": [
